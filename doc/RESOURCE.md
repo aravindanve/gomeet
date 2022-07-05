@@ -2,6 +2,8 @@
 
 ## User
 
+Defines an authorized user
+
 ```ts
 type User = {
   id: string;
@@ -14,7 +16,21 @@ type User = {
 };
 ```
 
+## Session
+
+Defines the current authorized user
+
+- `/session` _GET_
+
+```ts
+type Session = {
+  user: User | null;
+};
+```
+
 ## Auth
+
+Defines an authorization
 
 - `/auth` _POST_
 - `/auth/:authId` _PUT_
@@ -49,17 +65,9 @@ type AuthRefreshBody = {
 };
 ```
 
-## Session
-
-- `/session` _GET_
-
-```ts
-type Session = {
-  user: User | null;
-};
-```
-
 ## Meeting
+
+Defines a meeting
 
 - `/meetings` _POST_
 - `/meetings?code=...` _GET_
@@ -77,6 +85,8 @@ type Meeting = {
 ```
 
 ## Participant
+
+Defines a participant in a meeting
 
 - `/meetings/:meetingId/participants` _POST_
 - `/meetings/:meetingId/participants/:participantId` _PUT_, _GET_ (poll)
