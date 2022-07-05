@@ -61,6 +61,7 @@ type Session = {
 
 ## Meeting
 
+- `/meetings` _POST_
 - `/meetings?code=...` _GET_
 - `/meetings/:meetingId` _GET_
 
