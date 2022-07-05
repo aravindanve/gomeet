@@ -16,8 +16,8 @@ type User = {
 
 ## Auth
 
-- `/auth`
-- `/auth/:authId`
+- `/auth` _POST_
+- `/auth/:authId` _PUT_
 
 ```ts
 type Auth = {
@@ -41,11 +41,20 @@ type AuthorizationAccessTokenPayload = {
 };
 ```
 
+## Session
+
+- `/session` _GET_
+
+```ts
+type Session = {
+  user: User | null;
+};
+```
+
 ## Meeting
 
-- `/meetings`
-- `/meetings?code=...`
-- `/meetings/:meetingId`
+- `/meetings?code=...` _GET_
+- `/meetings/:meetingId` _GET_
 
 ```ts
 type Meeting = {
@@ -60,11 +69,15 @@ type Meeting = {
 
 ## Participant
 
-- `/meetings/:meetingId/participants` _POST only_
-- `/meetings/:meetingId/participants/:participantId` _For polling_
+- `/meetings/:meetingId/participants` _POST_
+- `/meetings/:meetingId/participants/:participantId` _PUT_, _GET_ (poll)
 
 ```ts
-// expires when participant token created, admission denied or after 30m
+// Participant expires when:
+// - admission is granted and participant is retrieved
+// - admission is denied and participant is retrieved
+// - 30m has elapsed
+
 type Participant = {
   id: string;
   meetingId: string;
