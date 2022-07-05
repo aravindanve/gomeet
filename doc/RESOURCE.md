@@ -35,9 +35,17 @@ type AuthWithAccessToken = Auth & {
   accessTokenExpiresAt: string;
 };
 
-type AuthorizationAccessTokenPayload = {
+type AuthAccessTokenPayload = {
   id: string;
   userId: string;
+};
+
+type AuthCreateBody = {
+  googleCode: string;
+};
+
+type AuthRefreshBody = {
+  refreshToken: string;
 };
 ```
 
@@ -102,5 +110,13 @@ type ParticipantTokenPayload = {
 type ParticipantTokenMetadataPayload = {
   name: string;
   imageUrl: string | null;
+};
+
+type ParticipantCreateBody = {
+  name?: string;
+};
+
+type ParticipantUpdateBody = {
+  status: "admitted" | "denied";
 };
 ```
