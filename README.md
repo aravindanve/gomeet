@@ -8,7 +8,8 @@ Web server for a simple video conferencing app written in golang with livekit. F
 make all    # runs test, e2e and build
 make build  # builds the binary
 make clean  # cleans the binary
-make test   # runs tests
+make test   # runs unit tests
+make e2e    # runs integration tests
 make run    # builds and runs binary
-make watch  # runs the source and watches for changes
+make dev    # runs the source and watches for changes
 ```
