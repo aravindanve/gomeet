@@ -4,6 +4,7 @@ bin/*
 
 # local files
 local
+local.*
 local_*
 
 # https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore

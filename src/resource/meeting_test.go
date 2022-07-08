@@ -30,7 +30,6 @@ func newMeetingAndJSON() (Meeting, []byte) {
 
 func TestMeetingMarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	m, j := newMeetingAndJSON()
 
 	value, err := json.Marshal(m)
@@ -44,7 +43,6 @@ func TestMeetingMarshalJSON(t *testing.T) {
 
 func TestMeetingUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	m, j := newMeetingAndJSON()
 
 	var value Meeting
@@ -84,7 +82,6 @@ func newMeetingAndBSON() (Meeting, []byte) {
 
 func TestMeetingMarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	m, b := newMeetingAndBSON()
 
 	value, err := bson.Marshal(m)
@@ -98,7 +95,6 @@ func TestMeetingMarshalBSON(t *testing.T) {
 
 func TestMeetingUnmarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	m, b := newMeetingAndBSON()
 
 	var value Meeting

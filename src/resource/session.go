@@ -20,8 +20,7 @@ func NewSessionController() *SessionController {
 	return &SessionController{}
 }
 
-func NewSessionRouter() *mux.Router {
-	r := mux.NewRouter()
+func RegisterSessionRoutes(r *mux.Router) *mux.Router {
 	c := NewSessionController()
 
 	r.HandleFunc("/session", c.SessionRetrieveHandler).Methods(http.MethodOptions, http.MethodPost)

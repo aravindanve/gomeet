@@ -36,7 +36,6 @@ func newAuthAndJSON() (AuthWithAccessToken, []byte) {
 
 func TestAuthMarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	a, j := newAuthAndJSON()
 
 	value, err := json.Marshal(a)
@@ -50,7 +49,6 @@ func TestAuthMarshalJSON(t *testing.T) {
 
 func TestAuthUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	a, j := newAuthAndJSON()
 
 	var value AuthWithAccessToken
@@ -90,7 +88,6 @@ func newAuthAndBSON() (Auth, []byte) {
 
 func TestAuthMarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	a, b := newAuthAndBSON()
 
 	value, err := bson.Marshal(a)
@@ -104,7 +101,6 @@ func TestAuthMarshalBSON(t *testing.T) {
 
 func TestAuthUnmarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	a, b := newAuthAndBSON()
 
 	var value Auth

@@ -37,7 +37,6 @@ func newParticipantAndJSON() (ParticipantWithToken, []byte) {
 
 func TestParticipantMarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	p, j := newParticipantAndJSON()
 
 	value, err := json.Marshal(p)
@@ -51,7 +50,6 @@ func TestParticipantMarshalJSON(t *testing.T) {
 
 func TestParticipantUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	p, j := newParticipantAndJSON()
 
 	var value ParticipantWithToken
@@ -95,7 +93,6 @@ func newParticipantAndBSON() (Participant, []byte) {
 
 func TestParticipantMarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	p, b := newParticipantAndBSON()
 
 	value, err := bson.Marshal(p)
@@ -109,7 +106,6 @@ func TestParticipantMarshalBSON(t *testing.T) {
 
 func TestParticipantUnmarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	p, b := newParticipantAndBSON()
 
 	var value Participant

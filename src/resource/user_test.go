@@ -31,7 +31,6 @@ func newUserAndJSON() (User, []byte) {
 
 func TestUserMarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	u, j := newUserAndJSON()
 
 	value, err := json.Marshal(u)
@@ -45,7 +44,6 @@ func TestUserMarshalJSON(t *testing.T) {
 
 func TestUserUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	u, j := newUserAndJSON()
 
 	var value User
@@ -87,7 +85,6 @@ func newUserAndBSON() (User, []byte) {
 
 func TestUserMarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	u, b := newUserAndBSON()
 
 	value, err := bson.Marshal(u)
@@ -101,7 +98,6 @@ func TestUserMarshalBSON(t *testing.T) {
 
 func TestUserUnmarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	u, b := newUserAndBSON()
 
 	var value User

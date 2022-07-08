@@ -27,6 +27,16 @@ type MeetingController struct {
 
 func (c *MeetingController) MeetingCreateHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO
+	// // decode authorization
+	// a, err := util.GetAuthorization(r, c)
+	// if err != nil {
+	// 	util.WriteJSONError(w, http.StatusBadRequest, err.Error())
+	// 	return
+	// }
+	// if a == nil {
+	// 	util.WriteJSONError(w, http.StatusUnauthorized, "Unauthorized")
+	// 	return
+	// }
 }
 
 func (c *MeetingController) MeetingSearchHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,11 +51,9 @@ func NewMeetingController() *MeetingController {
 	return &MeetingController{}
 }
 
-func NewMeetingRouter() *mux.Router {
-	r := mux.NewRouter()
+func RegisterMeetingRoutes(r *mux.Router) *mux.Router {
 	c := NewMeetingController()
 
-	r.Headers("content-type", "application/json")
 	r.HandleFunc("/meetings", c.MeetingCreateHandler).Methods(http.MethodOptions, http.MethodPost)
 	r.HandleFunc("/meetings", c.MeetingSearchHandler).Methods(http.MethodOptions, http.MethodGet).Queries("code", "{code}")
 	r.HandleFunc("/meetings/{meetingId}", c.MeetingRetrieveHandler).Methods(http.MethodOptions, http.MethodGet)

@@ -16,7 +16,6 @@ func newSessionAndJSON() (Session, []byte) {
 
 func TestSessionMarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	m, j := newSessionAndJSON()
 
 	value, err := json.Marshal(m)
@@ -30,7 +29,6 @@ func TestSessionMarshalJSON(t *testing.T) {
 
 func TestSessionUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	m, j := newSessionAndJSON()
 
 	var value Session
@@ -66,7 +64,6 @@ func newSessionWithUserAndJSON() (Session, []byte) {
 
 func TestSessionWithUserMarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	m, j := newSessionWithUserAndJSON()
 
 	value, err := json.Marshal(m)
@@ -80,7 +77,6 @@ func TestSessionWithUserMarshalJSON(t *testing.T) {
 
 func TestSessionWithUserUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-
 	m, j := newSessionWithUserAndJSON()
 
 	var value Session

@@ -21,7 +21,6 @@ func newResourceAndBSON() (Resource, []byte) {
 
 func TestResourceIDMarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	r, b := newResourceAndBSON()
 
 	value, err := bson.Marshal(r)
@@ -35,7 +34,6 @@ func TestResourceIDMarshalBSON(t *testing.T) {
 
 func TestResourceIDUnmarshalBSON(t *testing.T) {
 	t.Parallel()
-
 	r, b := newResourceAndBSON()
 
 	var value Resource

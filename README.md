@@ -5,6 +5,7 @@ Web server for a simple video conferencing app written in golang with livekit. F
 ## Commands
 
 ```bash
+make all    # runs test, e2e and build
 make build  # builds the binary
 make clean  # cleans the binary
 make test   # runs tests

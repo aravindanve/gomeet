@@ -70,8 +70,7 @@ func NewParticipantController() *ParticipantController {
 	return &ParticipantController{}
 }
 
-func NewParticipantRouter() *mux.Router {
-	r := mux.NewRouter()
+func RegisterParticipantRoutes(r *mux.Router) *mux.Router {
 	c := NewParticipantController()
 
 	r.HandleFunc("/participants", c.ParticipantCreateHandler).Methods(http.MethodOptions, http.MethodPost)
