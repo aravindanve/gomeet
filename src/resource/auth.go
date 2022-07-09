@@ -6,7 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -22,11 +24,11 @@ import (
 )
 
 const (
-	AuthRefreshTokenTTL = 90 * 24 * time.Hour
+	authRefreshTokenTTL = 90 * 24 * time.Hour
 )
 
 const (
-	AuthSchemeBearer AuthScheme = "Bearer"
+	authSchemeBearer AuthScheme = "Bearer"
 )
 
 type AuthScheme string
@@ -78,7 +80,12 @@ func NewAuthCollection(ctx context.Context, db *mongo.Database) *AuthCollection 
 		})
 
 		if err != nil {
-			panic(fmt.Sprintf("error creating mongo indexes: %s", err.Error()))
+			msg := fmt.Sprintf("error creating mongo indexes: %s", err.Error())
+			if os.Getenv("APP_ENV") == "testing" {
+				log.Println(msg) // do not panic in tests
+			} else {
+				panic(msg)
+			}
 		}
 	}()
 
@@ -240,7 +247,7 @@ func (c *authController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	refreshToken := base64.RawURLEncoding.EncodeToString(buf)
-	refreshTokenExpiresAt := time.Now().Add(AuthRefreshTokenTTL)
+	refreshTokenExpiresAt := time.Now().Add(authRefreshTokenTTL)
 
 	// create auth
 	auth := &Auth{
@@ -276,6 +283,7 @@ func (c *authController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 	// create response
 	response := &AuthWithAccessToken{
 		Auth:                 *auth,
+		Scheme:               authSchemeBearer,
 		AccessToken:          string(signed),
 		AccessTokenExpiresAt: token.Expiration(),
 	}

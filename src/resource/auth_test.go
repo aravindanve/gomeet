@@ -21,7 +21,7 @@ func newAuthAndJSON() (AuthWithAccessToken, []byte) {
 			CreatedAt:             t,
 			UpdatedAt:             t,
 		},
-		Scheme:               AuthSchemeBearer,
+		Scheme:               authSchemeBearer,
 		AccessToken:          "some-token",
 		AccessTokenExpiresAt: t,
 	}

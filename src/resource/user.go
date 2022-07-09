@@ -3,6 +3,8 @@ package resource
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,7 +48,12 @@ func NewUserCollection(ctx context.Context, db *mongo.Database) *UserCollection 
 		})
 
 		if err != nil {
-			panic(fmt.Sprintf("error creating mongo indexes: %s", err.Error()))
+			msg := fmt.Sprintf("error creating mongo indexes: %s", err.Error())
+			if os.Getenv("APP_ENV") == "testing" {
+				log.Println(msg) // do not panic in tests
+			} else {
+				panic(msg)
+			}
 		}
 	}()
 

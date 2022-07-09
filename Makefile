@@ -16,11 +16,11 @@ clean:
 
 .PHONY: test
 test: _require_dotenv
-	godotenv -f ./env/.env.test,./env/.env.default go test "${SRC}/..."
+	APP_ENV=testing godotenv -f ./env/.env.testing,./env/.env.default go test "${SRC}/..."
 
 .PHONY: e2e
 e2e: _require_dotenv
-	godotenv -f ./env/.env.test,./env/.env.default go test "${E2E}/..."
+	APP_ENV=testing godotenv -f ./env/.env.testing,./env/.env.default go test "${E2E}/..."
 
 .PHONY: run
 run: _require_dotenv

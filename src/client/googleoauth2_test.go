@@ -124,7 +124,7 @@ func TestGoogleOAuth2ClientVerifyIDTokenWithClaims(t *testing.T) {
 	token := jwt.New()
 	token.Set(jwt.IssuerKey, "https://accounts.google.com")
 	token.Set(jwt.AudienceKey, pr.GoogleOAuth2Config().ClientID)
-	token.Set("email", "aravindan.ve@example.com")
+	token.Set("email", "user@example.com")
 	token.Set("email_verified", true)
 	token.Set("given_name", "Aravindan")
 	token.Set("family_name", "Ve")
@@ -145,8 +145,8 @@ func TestGoogleOAuth2ClientVerifyIDTokenWithClaims(t *testing.T) {
 	}
 
 	// ensure token data is correctly encoded
-	if v := gtoken.Email; v != "aravindan.ve@example.com" {
-		t.Errorf("expected email to be %#v got %#v", "aravindan.ve@example.com", v)
+	if v := gtoken.Email; v != "user@example.com" {
+		t.Errorf("expected email to be %#v got %#v", "user@example.com", v)
 		return
 	}
 	if v := gtoken.EmailVerified; v != true {
@@ -199,7 +199,7 @@ func TestGoogleOAuth2ClientVerifyIDTokenRemoteJWKS(t *testing.T) {
 	token := jwt.New()
 	token.Set(jwt.IssuerKey, "https://accounts.google.com")
 	token.Set(jwt.AudienceKey, pr.GoogleOAuth2Config().ClientID)
-	token.Set("email", "aravindan.ve@example.com")
+	token.Set("email", "user@example.com")
 	token.Set("email_verified", true)
 	token.Set("given_name", "Aravindan")
 	token.Set("family_name", "Ve")
@@ -234,8 +234,8 @@ func TestGoogleOAuth2ClientVerifyIDTokenRemoteJWKS(t *testing.T) {
 	}
 
 	// ensure token data is correctly encoded
-	if v := gtoken.Email; v != "aravindan.ve@example.com" {
-		t.Errorf("expected email to be %#v got %#v", "aravindan.ve@example.com", v)
+	if v := gtoken.Email; v != "user@example.com" {
+		t.Errorf("expected email to be %#v got %#v", "user@example.com", v)
 		return
 	}
 	if v := gtoken.EmailVerified; v != true {
