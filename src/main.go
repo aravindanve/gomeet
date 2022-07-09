@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/aravindanve/gomeet-server/src/middleware"
 	"github.com/aravindanve/gomeet-server/src/provider"
 	"github.com/aravindanve/gomeet-server/src/resource"
 	"github.com/aravindanve/gomeet-server/src/util"
@@ -26,6 +27,7 @@ func main() {
 	resource.RegisterMeetingRoutes(r)
 	resource.RegisterParticipantRoutes(r)
 	r.Use(mux.CORSMethodMiddleware(r))
+	r.Use(middleware.AuthMiddleware(p))
 
 	// set 404 and 405 handlers
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
