@@ -7,6 +7,7 @@ import (
 
 	"github.com/aravindanve/gomeet-server/src/config"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"golang.org/x/net/context"
 )
 
 func TestAuthMiddleware(t *testing.T) {
@@ -91,6 +92,46 @@ func TestAuthMiddlewareBadToken(t *testing.T) {
 			return
 		}
 	})).ServeHTTP(w, r)
+}
+
+func TestGetAuthTokenParsed(t *testing.T) {
+	t.Parallel()
+	ds := config.NewAuthConfigProvider()
+	cf := ds.AuthConfig()
+
+	// create request
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r = r.WithContext(context.WithValue(r.Context(), authContextKey{}, &authContext{
+		parsed: true,
+		config: cf,
+		token: &AuthToken{
+			Token: jwt.New(),
+			AuthClaims: AuthClaims{
+				ID:     "some-id",
+				UserID: "some-user-id",
+			},
+		},
+		err: nil,
+		raw: "",
+	}))
+
+	token, err := GetAuthToken(r)
+	if err != nil {
+		t.Errorf("error gettting auth token: %s", err.Error())
+		return
+	}
+	if token == nil {
+		t.Error("expected auth token got nil")
+		return
+	}
+	if token.ID != "some-id" {
+		t.Errorf("expected id in payload to be %v got %v\n", "some-id", token.ID)
+		return
+	}
+	if token.UserID != "some-user-id" {
+		t.Errorf("expected id in payload to be %v got %v\n", "some-user-id", token.UserID)
+		return
+	}
 }
 
 func TestGetAuthTokenNotInitialized(t *testing.T) {
