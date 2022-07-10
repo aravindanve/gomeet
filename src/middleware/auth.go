@@ -38,7 +38,7 @@ type authContext struct {
 	raw    string
 }
 
-func NewAuthContext(c config.AuthConfig, rawToken string) *authContext {
+func NewAuthContext(c config.AuthConfig, rawToken string) AuthContext {
 	return &authContext{
 		parsed: false,
 		config: c,

@@ -22,10 +22,10 @@ func main() {
 	r := mux.NewRouter()
 
 	// register routes and middleware
-	resource.RegisterSessionRoutes(r)
+	resource.RegisterSessionRoutes(r, p)
 	resource.RegisterAuthRoutes(r, p)
-	resource.RegisterMeetingRoutes(r)
-	resource.RegisterParticipantRoutes(r)
+	resource.RegisterMeetingRoutes(r, p)
+	resource.RegisterParticipantRoutes(r, p)
 	r.Use(mux.CORSMethodMiddleware(r))
 	r.Use(middleware.AuthMiddleware(p))
 

@@ -6,22 +6,28 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type SessionDeps interface {
+	UserCollectionProvider
+}
+
 type Session struct {
 	User *User `json:"user"`
 }
 
-type SessionController struct{}
+type SessionController struct {
+	SessionDeps
+}
+
+func NewSessionController(ds SessionDeps) *SessionController {
+	return &SessionController{SessionDeps: ds}
+}
 
 func (c *SessionController) SessionRetrieveHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO
 }
 
-func NewSessionController() *SessionController {
-	return &SessionController{}
-}
-
-func RegisterSessionRoutes(r *mux.Router) *mux.Router {
-	c := NewSessionController()
+func RegisterSessionRoutes(r *mux.Router, ds SessionDeps) *mux.Router {
+	c := NewSessionController(ds)
 
 	r.HandleFunc("/session", c.SessionRetrieveHandler).Methods(http.MethodOptions, http.MethodPost)
 

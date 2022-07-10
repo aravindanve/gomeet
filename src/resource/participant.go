@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -19,6 +20,10 @@ const (
 )
 
 type ParticipantStatus string
+
+type ParticipantDeps interface {
+	ParticipantCollectionProvider
+}
 
 type Participant struct {
 	ID        ResourceID        `json:"id" bson:"_id,omitempty"`
@@ -42,19 +47,59 @@ type ParticipantMetadataPayload struct {
 	ImageURL *string `json:"imageUrl"`
 }
 
+type ParticipantCollectionProvider interface {
+	ParticipantCollection() *ParticipantCollection
+}
+
+type ParticipantCollection struct {
+	collection *mongo.Collection
+}
+
+func NewParticipantCollection(ctx context.Context, db *mongo.Database) *ParticipantCollection {
+	collection := db.Collection("auth")
+
+	// TODO
+	// // create indexes
+	// go func() {
+	// 	_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
+	// 		Keys:    bson.D{{Key: "providerResourceId", Value: 1}},
+	// 		Options: options.Index().SetUnique(true),
+	// 	})
+
+	// 	if err != nil {
+	// 		msg := fmt.Sprintf("error creating mongo indexes: %s", err.Error())
+	// 		if os.Getenv("APP_ENV") == "testing" {
+	// 			log.Println(msg) // do not panic in tests
+	// 		} else {
+	// 			panic(msg)
+	// 		}
+	// 	}
+	// }()
+
+	return &ParticipantCollection{collection: collection}
+}
+
+type ParticipantController struct {
+	ParticipantDeps
+}
+
 type ParticipantCreateBody struct {
 	Name string `json:"name"`
+}
+
+func NewParticipantController(ds ParticipantDeps) *ParticipantController {
+	return &ParticipantController{ParticipantDeps: ds}
+}
+
+func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO
 }
 
 type ParticipantUpdateBody struct {
 	Status ParticipantStatus `json:"status"`
 }
 
-type ParticipantController struct {
-	collection *mongo.Collection
-}
-
-func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, r *http.Request) {
+func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO
 }
 
@@ -62,16 +107,8 @@ func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter
 	// TODO
 }
 
-func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO
-}
-
-func NewParticipantController() *ParticipantController {
-	return &ParticipantController{}
-}
-
-func RegisterParticipantRoutes(r *mux.Router) *mux.Router {
-	c := NewParticipantController()
+func RegisterParticipantRoutes(r *mux.Router, ds ParticipantDeps) *mux.Router {
+	c := NewParticipantController(ds)
 
 	r.HandleFunc("/participants", c.ParticipantCreateHandler).Methods(http.MethodOptions, http.MethodPost)
 	r.HandleFunc("/participants/{participantId}", c.ParticipantRetrieveHandler).Methods(http.MethodOptions, http.MethodGet)

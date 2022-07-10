@@ -7,8 +7,14 @@ import (
 	"os"
 	"runtime/debug"
 	"testing"
+	"time"
 
+	"github.com/aravindanve/gomeet-server/src/config"
+	"github.com/aravindanve/gomeet-server/src/provider"
+	"github.com/aravindanve/gomeet-server/src/resource"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/ory/dockertest/v3"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -17,14 +23,21 @@ import (
 var pool *dockertest.Pool
 var resources []*dockertest.Resource
 
-func PanicGuard(t *testing.T) {
-	if r := recover(); r != nil {
-		t.Errorf("recovered from panic: %s\n", r)
-		debug.PrintStack()
-	}
+func TestMain(m *testing.M) {
+	code := 0
+
+	// defer teardown
+	defer teardownMain(&code)
+
+	// setup
+	setupMain()
+
+	// run
+	log.Println("running tests...")
+	code = m.Run()
 }
 
-func SetupMain() {
+func setupMain() {
 	log.Println("setting up tests...")
 
 	var err error
@@ -69,7 +82,7 @@ func SetupMain() {
 	}
 }
 
-func TeardownMain(code *int) {
+func teardownMain(code *int) {
 	log.Println("tearing down tests...")
 
 	if r := recover(); r != nil {
@@ -88,16 +101,61 @@ func TeardownMain(code *int) {
 	os.Exit(*code)
 }
 
-func TestMain(m *testing.M) {
-	code := 0
+// helpers
 
-	// defer teardown
-	defer TeardownMain(&code)
+func panicGuard(t *testing.T) {
+	if r := recover(); r != nil {
+		t.Errorf("recovered from panic: %s\n", r)
+		debug.PrintStack()
+	}
+}
 
-	// setup
-	SetupMain()
+var testUser *resource.User
 
-	// run
-	log.Println("running tests...")
-	code = m.Run()
+func getTestUser() resource.User {
+	if testUser == nil {
+		// create test user
+		ctx := context.Background()
+		p := provider.NewProvider(ctx)
+		defer p.Release(ctx)
+
+		testUser = &resource.User{
+			Name:               "Test User",
+			Provider:           resource.UserProviderGoogle,
+			ProviderResourceID: "",
+		}
+
+		p.UserCollection().Save(ctx, testUser)
+	}
+	return *testUser
+}
+
+var testAuthHeader *string
+
+func getTestAuthHeader() string {
+	if testAuthHeader == nil {
+		// create test auth header
+		cf := config.NewAuthConfigProvider().AuthConfig()
+		user := getTestUser()
+		token, err := jwt.NewBuilder().
+			Issuer(cf.Issuer).
+			Expiration(time.Now().Add(cf.TTL)).
+			Claim("id", resource.ResourceIDFromObjectID(primitive.NewObjectID())).
+			Claim("userId", user.ID).
+			Build()
+
+		if err != nil {
+			panic(fmt.Sprintf("error creating jwt: %s", err.Error()))
+		}
+
+		// sign access token
+		signed, err := jwt.Sign(token, jwt.WithKey(cf.Algorithm, cf.Secret))
+		if err != nil {
+			panic(fmt.Sprintf("error signing jwt: %s", err.Error()))
+		}
+
+		header := "Bearer " + string(signed)
+		testAuthHeader = &header
+	}
+	return *testAuthHeader
 }

@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -12,6 +13,10 @@ const (
 	MeetingTTL = 365 * 24 * time.Hour
 )
 
+type MeetingDeps interface {
+	MeetingCollectionProvider
+}
+
 type Meeting struct {
 	ID        ResourceID `json:"id" bson:"_id,omitempty"`
 	UserID    ResourceID `json:"userId" bson:"userId"`
@@ -21,8 +26,44 @@ type Meeting struct {
 	ExpiresAt time.Time  `json:"expiresAt" bson:"expiresAt"`
 }
 
-type MeetingController struct {
+type MeetingCollectionProvider interface {
+	MeetingCollection() *MeetingCollection
+}
+
+type MeetingCollection struct {
 	collection *mongo.Collection
+}
+
+func NewMeetingCollection(ctx context.Context, db *mongo.Database) *MeetingCollection {
+	collection := db.Collection("auth")
+
+	// TODO
+	// // create indexes
+	// go func() {
+	// 	_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
+	// 		Keys:    bson.D{{Key: "providerResourceId", Value: 1}},
+	// 		Options: options.Index().SetUnique(true),
+	// 	})
+
+	// 	if err != nil {
+	// 		msg := fmt.Sprintf("error creating mongo indexes: %s", err.Error())
+	// 		if os.Getenv("APP_ENV") == "testing" {
+	// 			log.Println(msg) // do not panic in tests
+	// 		} else {
+	// 			panic(msg)
+	// 		}
+	// 	}
+	// }()
+
+	return &MeetingCollection{collection: collection}
+}
+
+type MeetingController struct {
+	MeetingDeps
+}
+
+func NewMeetingController(ds MeetingDeps) *MeetingController {
+	return &MeetingController{MeetingDeps: ds}
 }
 
 func (c *MeetingController) MeetingCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,15 +88,11 @@ func (c *MeetingController) MeetingRetrieveHandler(w http.ResponseWriter, r *htt
 	// TODO
 }
 
-func NewMeetingController() *MeetingController {
-	return &MeetingController{}
-}
+func RegisterMeetingRoutes(r *mux.Router, ds MeetingDeps) *mux.Router {
+	c := NewMeetingController(ds)
 
-func RegisterMeetingRoutes(r *mux.Router) *mux.Router {
-	c := NewMeetingController()
-
-	r.HandleFunc("/meetings", c.MeetingCreateHandler).Methods(http.MethodOptions, http.MethodPost)
 	r.HandleFunc("/meetings", c.MeetingSearchHandler).Methods(http.MethodOptions, http.MethodGet).Queries("code", "{code}")
+	r.HandleFunc("/meetings", c.MeetingCreateHandler).Methods(http.MethodOptions, http.MethodPost)
 	r.HandleFunc("/meetings/{meetingId}", c.MeetingRetrieveHandler).Methods(http.MethodOptions, http.MethodGet)
 
 	return r

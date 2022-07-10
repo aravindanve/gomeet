@@ -25,10 +25,16 @@ func newMockAuthDeps(ctx context.Context) resource.AuthDeps {
 }
 
 func (m *mockAuthDeps) GoogleOAuth2Client() client.GoogleOAuth2Client {
-	return &mockGoogleOAuth2Client{}
+	return newMockGoogleOAuth2Client()
 }
 
-type mockGoogleOAuth2Client struct{}
+type mockGoogleOAuth2Client struct {
+	client.GoogleOAuth2Client
+}
+
+func newMockGoogleOAuth2Client() client.GoogleOAuth2Client {
+	return &mockGoogleOAuth2Client{}
+}
 
 func (m *mockGoogleOAuth2Client) VerifyIDToken(ctx context.Context, signed string) (*client.GoogleOAuth2Token, error) {
 	return &client.GoogleOAuth2Token{
@@ -43,7 +49,7 @@ func (m *mockGoogleOAuth2Client) VerifyIDToken(ctx context.Context, signed strin
 
 func TestAuthCreate(t *testing.T) {
 	t.Parallel()
-	defer PanicGuard(t)
+	defer panicGuard(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	d := newMockAuthDeps(ctx)

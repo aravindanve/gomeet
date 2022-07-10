@@ -1,14 +1,21 @@
 package config
 
-type Config struct {
+type Config interface {
 	HttpConfigProvider
 	MongoConfigProvider
 	GoogleOAuth2ConfigProvider
 	AuthConfigProvider
 }
 
-func NewConfig() *Config {
-	return &Config{
+type config struct {
+	HttpConfigProvider
+	MongoConfigProvider
+	GoogleOAuth2ConfigProvider
+	AuthConfigProvider
+}
+
+func NewConfig() Config {
+	return &config{
 		HttpConfigProvider:         NewHttpConfigProvider(),
 		MongoConfigProvider:        NewMongoConfigProvider(),
 		GoogleOAuth2ConfigProvider: NewGoogleOAuth2ConfigProvider(),

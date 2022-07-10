@@ -170,19 +170,19 @@ func (c *AuthCollection) Save(
 	}
 }
 
-type authController struct {
+type AuthController struct {
 	AuthDeps
 }
 
-func NewAuthController(ds AuthDeps) *authController {
-	return &authController{AuthDeps: ds}
+func NewAuthController(ds AuthDeps) *AuthController {
+	return &AuthController{AuthDeps: ds}
 }
 
 type AuthCreateBody struct {
 	GoogleIdToken string `json:"googleIdToken"`
 }
 
-func (c *authController) AuthCreateHandler(w http.ResponseWriter, r *http.Request) {
+func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Request) {
 	// decode body
 	b := &AuthCreateBody{}
 
@@ -295,7 +295,7 @@ type AuthRefreshBody struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-func (c *authController) AuthRefreshHandler(w http.ResponseWriter, r *http.Request) {
+func (c *AuthController) AuthRefreshHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO
 	// params := mux.Vars(r)
 }
