@@ -46,7 +46,7 @@ type MeetingCollection struct {
 }
 
 func NewMeetingCollection(ctx context.Context, db *mongo.Database) *MeetingCollection {
-	collection := db.Collection("auth")
+	collection := db.Collection("meeting")
 
 	// create indexes
 	go func() {
