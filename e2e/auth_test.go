@@ -68,7 +68,7 @@ func TestAuthCreate(t *testing.T) {
 	}
 
 	// test response
-	var m map[string]string
+	var m map[string]any
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)

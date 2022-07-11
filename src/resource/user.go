@@ -102,7 +102,7 @@ func (c *UserCollection) FindOneByProviderResourceID(
 
 func (c *UserCollection) Save(
 	ctx context.Context, user *User,
-) (*User, error) {
+) error {
 	if user.ID == "" {
 		now := time.Now()
 		user.CreatedAt = now
@@ -110,14 +110,14 @@ func (c *UserCollection) Save(
 
 		r, err := c.collection.InsertOne(ctx, user)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		user.ID = ResourceIDFromObjectID(r.InsertedID.(primitive.ObjectID))
-		return user, nil
+		return nil
 	} else {
 		_id, err := user.ID.ObjectID()
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		user.UpdatedAt = time.Now()
@@ -127,9 +127,6 @@ func (c *UserCollection) Save(
 		}, bson.D{
 			{Key: "$set", Value: user},
 		})
-		if err != nil {
-			return nil, err
-		}
-		return user, nil
+		return err
 	}
 }

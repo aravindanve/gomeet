@@ -138,7 +138,7 @@ func (c *AuthCollection) DeleteOneByID(
 
 func (c *AuthCollection) Save(
 	ctx context.Context, auth *Auth,
-) (*Auth, error) {
+) error {
 	if auth.ID == "" {
 		now := time.Now()
 		auth.CreatedAt = now
@@ -146,14 +146,14 @@ func (c *AuthCollection) Save(
 
 		r, err := c.collection.InsertOne(ctx, auth)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		auth.ID = ResourceIDFromObjectID(r.InsertedID.(primitive.ObjectID))
-		return auth, nil
+		return nil
 	} else {
 		_id, err := auth.ID.ObjectID()
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		auth.UpdatedAt = time.Now()
@@ -163,10 +163,7 @@ func (c *AuthCollection) Save(
 		}, bson.D{
 			{Key: "$set", Value: auth},
 		})
-		if err != nil {
-			return nil, err
-		}
-		return auth, nil
+		return err
 	}
 }
 
@@ -236,7 +233,11 @@ func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// save user
-	c.UserCollection().Save(r.Context(), user)
+	err = c.UserCollection().Save(r.Context(), user)
+	if err != nil {
+		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	// create refresh token
 	buf := make([]byte, 128)
@@ -257,7 +258,11 @@ func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// save auth
-	c.AuthCollection().Save(r.Context(), auth)
+	err = c.AuthCollection().Save(r.Context(), auth)
+	if err != nil {
+		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	// create access token
 	cf := c.AuthConfig()
