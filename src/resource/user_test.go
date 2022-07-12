@@ -29,7 +29,7 @@ func newUserAndJSON() (User, []byte) {
 	return u, j
 }
 
-func TestUserMarshalJSON(t *testing.T) {
+func MockUserMarshalJSON(t *testing.T) {
 	t.Parallel()
 	u, j := newUserAndJSON()
 
@@ -42,7 +42,7 @@ func TestUserMarshalJSON(t *testing.T) {
 	}
 }
 
-func TestUserUnmarshalJSON(t *testing.T) {
+func MockUserUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 	u, j := newUserAndJSON()
 
@@ -83,7 +83,7 @@ func newUserAndBSON() (User, []byte) {
 	return u, b
 }
 
-func TestUserMarshalBSON(t *testing.T) {
+func MockUserMarshalBSON(t *testing.T) {
 	t.Parallel()
 	u, b := newUserAndBSON()
 
@@ -96,7 +96,7 @@ func TestUserMarshalBSON(t *testing.T) {
 	}
 }
 
-func TestUserUnmarshalBSON(t *testing.T) {
+func MockUserUnmarshalBSON(t *testing.T) {
 	t.Parallel()
 	u, b := newUserAndBSON()
 

@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	AuthAccessTokenTTL    = 24 * time.Hour
-	AuthAccessTokenIssuer = "https://github.com/aravindanve/gomeet-server"
+	authAccessTokenTTL    = 24 * time.Hour
+	authAccessTokenIssuer = "https://github.com/aravindanve/gomeet-server"
 )
 
 type AuthConfig struct {
@@ -34,9 +34,9 @@ func NewAuthConfigProvider() AuthConfigProvider {
 	return &authConfigProvider{
 		authConfig: AuthConfig{
 			Algorithm: jwa.HS512,
-			Secret:    GetenvStringBase64("AUTH_SECRET"),
-			Issuer:    AuthAccessTokenIssuer,
-			TTL:       AuthAccessTokenTTL,
+			Secret:    GetenvBytesBase64("AUTH_SECRET"),
+			Issuer:    authAccessTokenIssuer,
+			TTL:       authAccessTokenTTL,
 		},
 	}
 }

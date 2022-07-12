@@ -44,9 +44,9 @@ type GoogleOAuth2ClientProvider interface {
 
 type GoogleOAuth2Client interface {
 	VerifyIDToken(ctx context.Context, signed string) (*GoogleOAuth2Token, error)
-	SetKeySet(key string, set jwk.Set, ttl time.Duration) GoogleOAuth2Client
-	SetFetchClient(client *http.Client) GoogleOAuth2Client
-	SetFetchURL(url *string) GoogleOAuth2Client
+	setKeySet(key string, set jwk.Set, ttl time.Duration) GoogleOAuth2Client
+	setFetchClient(client *http.Client) GoogleOAuth2Client
+	setFetchURL(url *string) GoogleOAuth2Client
 }
 
 type googleOAuth2Client struct {
@@ -124,17 +124,17 @@ func (s *googleOAuth2Client) VerifyIDToken(ctx context.Context, signed string) (
 	}, nil
 }
 
-func (s *googleOAuth2Client) SetKeySet(key string, set jwk.Set, ttl time.Duration) GoogleOAuth2Client {
+func (s *googleOAuth2Client) setKeySet(key string, set jwk.Set, ttl time.Duration) GoogleOAuth2Client {
 	s.cache.Set(key, set, ttl)
 	return s
 }
 
-func (s *googleOAuth2Client) SetFetchClient(client *http.Client) GoogleOAuth2Client {
+func (s *googleOAuth2Client) setFetchClient(client *http.Client) GoogleOAuth2Client {
 	s.fetchClient = client
 	return s
 }
 
-func (s *googleOAuth2Client) SetFetchURL(url *string) GoogleOAuth2Client {
+func (s *googleOAuth2Client) setFetchURL(url *string) GoogleOAuth2Client {
 	s.fetchURL = url
 	return s
 }

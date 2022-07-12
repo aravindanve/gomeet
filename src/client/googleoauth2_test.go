@@ -56,7 +56,7 @@ func TestGoogleOAuth2ClientVerifyIDTokenNoClaims(t *testing.T) {
 		t.Errorf("failed to get public key set from set: %s\n", err)
 		return
 	}
-	cl.SetKeySet("google", p, 5*time.Minute)
+	cl.setKeySet("google", p, 5*time.Minute)
 
 	// create the token
 	token := jwt.New()
@@ -118,7 +118,7 @@ func TestGoogleOAuth2ClientVerifyIDTokenWithClaims(t *testing.T) {
 		t.Errorf("failed to get public key set from set: %s\n", err)
 		return
 	}
-	cl.SetKeySet("google", p, 5*time.Minute)
+	cl.setKeySet("google", p, 5*time.Minute)
 
 	// create the token
 	token := jwt.New()
@@ -223,8 +223,8 @@ func TestGoogleOAuth2ClientVerifyIDTokenRemoteJWKS(t *testing.T) {
 	defer srv.Close()
 
 	// set http test client and url
-	cl.SetFetchClient(srv.Client())
-	cl.SetFetchURL(&srv.URL)
+	cl.setFetchClient(srv.Client())
+	cl.setFetchURL(&srv.URL)
 
 	// test verify id token
 	gtoken, err := cl.VerifyIDToken(context.Background(), string(signed))

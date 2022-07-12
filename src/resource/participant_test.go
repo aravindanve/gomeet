@@ -3,6 +3,7 @@ package resource
 import (
 	"bytes"
 	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
@@ -10,9 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func newParticipantAndJSON() (ParticipantWithToken, []byte) {
+func newParticipantAndJSON() (ParticipantWithJoinToken, []byte) {
 	var t, _ = time.Parse(time.RFC3339, "2022-01-01T00:00:00.000Z")
-	var p = ParticipantWithToken{
+	var s = "some-token"
+	var p = ParticipantWithJoinToken{
 		Participant: Participant{
 			ID:        "some-id",
 			MeetingID: "some-id",
@@ -23,14 +25,14 @@ func newParticipantAndJSON() (ParticipantWithToken, []byte) {
 			UpdatedAt: t,
 			ExpiresAt: t,
 		},
-		Token:          "some-token",
-		TokenExpiresAt: t,
+		JoinToken:          &s,
+		JoinTokenExpiresAt: &t,
 	}
 
 	var j = []byte(`{"id":"some-id","meetingId":"some-id","name":"Aravindan",` +
 		`"imageUrl":null,"status":"waiting","createdAt":"2022-01-01T00:00:00Z",` +
 		`"updatedAt":"2022-01-01T00:00:00Z","expiresAt":"2022-01-01T00:00:00Z",` +
-		`"Token":"some-token","TokenExpiresAt":"2022-01-01T00:00:00Z"}`)
+		`"joinToken":"some-token","joinTokenExpiresAt":"2022-01-01T00:00:00Z"}`)
 
 	return p, j
 }
@@ -52,12 +54,12 @@ func TestParticipantUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 	p, j := newParticipantAndJSON()
 
-	var value ParticipantWithToken
+	var value ParticipantWithJoinToken
 	err := json.Unmarshal([]byte(j), &value)
 	if err != nil {
 		t.Fatalf("Error unmarshalling json: %#v", err)
 	}
-	if p != value {
+	if !reflect.DeepEqual(p, value) {
 		t.Fatalf("Unexpected unmarshalled json: %#v", value)
 	}
 }
@@ -113,7 +115,7 @@ func TestParticipantUnmarshalBSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error unmarshalling bson: %#v", err)
 	}
-	if p != value {
+	if !reflect.DeepEqual(p, value) {
 		t.Fatalf("Unexpected unmarshalled bson: %#v", value)
 	}
 }

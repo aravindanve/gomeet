@@ -10,6 +10,10 @@ import (
 
 type ResourceID string
 
+func NewResourceID() ResourceID {
+	return ResourceIDFromObjectID(primitive.NewObjectID())
+}
+
 func ResourceIDFromObjectID(o primitive.ObjectID) ResourceID {
 	return ResourceID(o.Hex())
 }

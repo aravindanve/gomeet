@@ -15,7 +15,7 @@ func (p *mockMongoClientDeps) MongoConfig() config.MongoConfig {
 	return p.mongoConfig
 }
 
-func NewMongoClientDeps(connectionURI string) MongoClientDeps {
+func NewMockMongoClientDeps(connectionURI string) MongoClientDeps {
 	return &mockMongoClientDeps{
 		mongoConfig: config.MongoConfig{
 			ConnectionURI: connectionURI,
@@ -26,7 +26,7 @@ func NewMongoClientDeps(connectionURI string) MongoClientDeps {
 func TestNewMongoClient(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	p := NewMongoClientDeps("mongodb://host")
+	p := NewMockMongoClientDeps("mongodb://host")
 	c := NewMongoClient(ctx, p)
 	defer c.Disconnect(ctx)
 }
@@ -34,7 +34,7 @@ func TestNewMongoClient(t *testing.T) {
 func TestGetMongoDatabaseDefault(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	pr := NewMongoClientDeps("mongodb://username:password@host:27017/database?authSource=admin")
+	pr := NewMockMongoClientDeps("mongodb://username:password@host:27017/database?authSource=admin")
 	cl := NewMongoClient(ctx, pr)
 	defer cl.Disconnect(ctx)
 
@@ -50,7 +50,7 @@ func TestGetMongoDatabaseDefault(t *testing.T) {
 
 func TestGetMongoDatabaseDefaultNoDatabase(t *testing.T) {
 	t.Parallel()
-	pr := NewMongoClientDeps("mongodb://username:password@host:27017/?authSource=admin")
+	pr := NewMockMongoClientDeps("mongodb://username:password@host:27017/?authSource=admin")
 	cl := NewMongoClient(context.Background(), pr)
 	db := GetMongoDatabaseDefault(cl, pr)
 

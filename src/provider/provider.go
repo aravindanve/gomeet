@@ -13,6 +13,7 @@ type Provider interface {
 	config.Config
 	client.MongoClientProvider
 	client.GoogleOAuth2ClientProvider
+	client.LiveKitClientProvider
 	resource.UserCollectionProvider
 	resource.AuthCollectionProvider
 	resource.MeetingCollectionProvider
@@ -24,6 +25,7 @@ type provider struct {
 	config.Config
 	mongoClient           *mongo.Client
 	googleOAuth2Client    client.GoogleOAuth2Client
+	livekitClient         client.LiveKitClient
 	authCollection        *resource.AuthCollection
 	userCollection        *resource.UserCollection
 	meetingCollection     *resource.MeetingCollection
@@ -40,6 +42,7 @@ func NewProvider(ctx context.Context) Provider {
 		Config:                cf,
 		mongoClient:           mongoClient,
 		googleOAuth2Client:    client.NewGoogleOAuth2Client(cf),
+		livekitClient:         client.NewLiveKitClient(cf),
 		authCollection:        resource.NewAuthCollection(ctx, mongoDB),
 		userCollection:        resource.NewUserCollection(ctx, mongoDB),
 		meetingCollection:     resource.NewMeetingCollection(ctx, mongoDB),
@@ -57,6 +60,10 @@ func (p *provider) MongoClient() *mongo.Client {
 
 func (p *provider) GoogleOAuth2Client() client.GoogleOAuth2Client {
 	return p.googleOAuth2Client
+}
+
+func (p *provider) LiveKitClient() client.LiveKitClient {
+	return p.livekitClient
 }
 
 func (p *provider) AuthCollection() *resource.AuthCollection {

@@ -2,9 +2,13 @@ package main_test
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base32"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,10 +18,39 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func TestMeetingCreate(t *testing.T) {
+func newMockMeeting(ctx context.Context) resource.Meeting {
+	// create mock meeting
+	p := provider.NewProvider(ctx)
+	defer p.Release(ctx)
+
+	// create code
+	buf := make([]byte, 7)
+	_, err := rand.Read(buf)
+	if err != nil {
+		panic(fmt.Sprintf("error reading random bytes: %s", err.Error()))
+	}
+
+	code := strings.ToLower(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(buf))
+	code = code[:4] + "-" + code[4:8] + "-" + code[8:]
+
+	user := getMockUser()
+	mockMeeting := &resource.Meeting{
+		UserID:    user.ID,
+		Code:      code,
+		ExpiresAt: time.Now().Add(1 * time.Hour),
+	}
+
+	err = p.MeetingCollection().Save(ctx, mockMeeting)
+	if err != nil {
+		panic(fmt.Sprintf("error saving meeting: %s", err.Error()))
+	}
+	return *mockMeeting
+}
+
+func MockMeetingCreate(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
@@ -26,7 +59,7 @@ func TestMeetingCreate(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/meetings", nil)
-	req.Header.Set("authorization", getTestAuthHeader())
+	req.Header.Set("authorization", getMockAuthHeader())
 
 	// test route
 	r.ServeHTTP(w, req)
@@ -59,10 +92,10 @@ func TestMeetingCreate(t *testing.T) {
 	}
 }
 
-func TestMeetingCreateNoAuth(t *testing.T) {
+func MockMeetingCreateNoAuth(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
@@ -99,16 +132,16 @@ func TestMeetingCreateNoAuth(t *testing.T) {
 	}
 }
 
-func TestMeetingSearch(t *testing.T) {
+func MockMeetingSearch(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
 	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 
-	meeting := getTestMeeting()
+	meeting := newMockMeeting(ctx)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/meetings?code="+meeting.Code, nil)
@@ -141,16 +174,16 @@ func TestMeetingSearch(t *testing.T) {
 	}
 }
 
-func TestMeetingRetrieve(t *testing.T) {
+func MockMeetingRetrieve(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
 	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 
-	meeting := getTestMeeting()
+	meeting := newMockMeeting(ctx)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/meetings/"+string(meeting.ID), nil)

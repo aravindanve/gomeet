@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func TestAuthMiddleware(t *testing.T) {
+func MockAuthMiddleware(t *testing.T) {
 	t.Parallel()
 	ds := config.NewAuthConfigProvider()
 	cf := ds.AuthConfig()
@@ -58,7 +58,7 @@ func TestAuthMiddleware(t *testing.T) {
 	})).ServeHTTP(w, r)
 }
 
-func TestAuthMiddlewareBadToken(t *testing.T) {
+func MockAuthMiddlewareBadToken(t *testing.T) {
 	t.Parallel()
 	ds := config.NewAuthConfigProvider()
 	cf := ds.AuthConfig()

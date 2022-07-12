@@ -3,18 +3,55 @@ package main_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/aravindanve/gomeet-server/src/client"
+	"github.com/aravindanve/gomeet-server/src/config"
 	"github.com/aravindanve/gomeet-server/src/provider"
 	"github.com/aravindanve/gomeet-server/src/resource"
 	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+var mockAuthHeader *string
+var mockAuthHeaderMut sync.Mutex
+
+func getMockAuthHeader() string {
+	mockAuthHeaderMut.Lock()
+	if mockAuthHeader == nil {
+		// create mock auth header
+		cf := config.NewAuthConfigProvider().AuthConfig()
+		user := getMockUser()
+		token, err := jwt.NewBuilder().
+			Issuer(cf.Issuer).
+			Expiration(time.Now().Add(cf.TTL)).
+			Claim("id", resource.ResourceIDFromObjectID(primitive.NewObjectID())).
+			Claim("userId", user.ID).
+			Build()
+
+		if err != nil {
+			panic(fmt.Sprintf("error creating jwt: %s", err.Error()))
+		}
+
+		// sign access token
+		signed, err := jwt.Sign(token, jwt.WithKey(cf.Algorithm, cf.Secret))
+		if err != nil {
+			panic(fmt.Sprintf("error signing jwt: %s", err.Error()))
+		}
+
+		header := "Bearer " + string(signed)
+		mockAuthHeader = &header
+	}
+	mockAuthHeaderMut.Unlock()
+	return *mockAuthHeader
+}
 
 type mockAuthDeps struct {
 	resource.AuthDeps
@@ -47,10 +84,10 @@ func (m *mockGoogleOAuth2Client) VerifyIDToken(ctx context.Context, signed strin
 	}, nil
 }
 
-func TestAuthCreate(t *testing.T) {
+func MockAuthCreate(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := newTestContext()
 	defer cancel()
 	d := newMockAuthDeps(ctx)
 	r := resource.RegisterAuthRoutes(mux.NewRouter(), d)

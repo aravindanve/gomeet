@@ -108,7 +108,7 @@ type Participant = {
   expiresAt: string; // ttl: 30m
 };
 
-type ParticipantWithToken = Participant & {
+type ParticipantWithJoinToken = Participant & {
   token: string | null;
   tokenExpiresAt: string;
 };

@@ -149,7 +149,7 @@ func NewMeetingController(ds MeetingDeps) *MeetingController {
 }
 
 func (c *MeetingController) MeetingCreateHandler(w http.ResponseWriter, r *http.Request) {
-	// decode authorization
+	// decode auth token
 	auth, err := middleware.GetAuthToken(r)
 	if err != nil {
 		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
@@ -214,7 +214,7 @@ func (c *MeetingController) MeetingRetrieveHandler(w http.ResponseWriter, r *htt
 	// get meeting id
 	meetingID := mux.Vars(r)["meetingId"]
 	if meetingID == "" {
-		util.WriteJSONError(w, http.StatusBadRequest, "Missing meetingId in request query")
+		util.WriteJSONError(w, http.StatusBadRequest, "Missing meetingId in request path")
 		return
 	}
 
@@ -225,7 +225,7 @@ func (c *MeetingController) MeetingRetrieveHandler(w http.ResponseWriter, r *htt
 		return
 	}
 	if meeting == nil {
-		util.WriteJSONError(w, http.StatusNotFound, "Not found")
+		util.WriteJSONError(w, http.StatusNotFound, "Meeting not found")
 		return
 	}
 

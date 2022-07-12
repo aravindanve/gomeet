@@ -71,7 +71,7 @@ func GetenvBoolWithDefault(name string, defaultValue bool) bool {
 	return b
 }
 
-func GetenvStringBase64(name string) []byte {
+func GetenvBytesBase64(name string) []byte {
 	s := os.Getenv(name)
 	if s == "" {
 		panic(fmt.Sprintf("env variable %s (base64 string) missing", name))
@@ -83,7 +83,7 @@ func GetenvStringBase64(name string) []byte {
 	return b
 }
 
-func GetenvStringBase64WithDefault(name string, defaultValue []byte) []byte {
+func GetenvBytesBase64WithDefault(name string, defaultValue []byte) []byte {
 	s := os.Getenv(name)
 	if s == "" {
 		return defaultValue
