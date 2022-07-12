@@ -240,11 +240,10 @@ func (c *AuthCollection) gc(
 		SetSkip(int64(countMax)).
 		SetLimit(1),
 	)
-	defer func() { cur.Close(ctx) }()
-
 	if err != nil {
 		return err
 	}
+	defer cur.Close(ctx)
 
 	var docs []Auth
 	err = cur.All(ctx, &docs)
