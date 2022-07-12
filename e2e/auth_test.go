@@ -53,15 +53,17 @@ func getMockAuthHeader() string {
 	return *mockAuthHeader
 }
 
-type mockAuthDeps struct {
+type mockAuthProvider struct {
 	resource.AuthDeps
+	Release func(ctx context.Context)
 }
 
-func newMockAuthDeps(ctx context.Context) resource.AuthDeps {
-	return &mockAuthDeps{AuthDeps: provider.NewProvider(ctx)}
+func newMockAuthProvider(ctx context.Context) *mockAuthProvider {
+	p := provider.NewProvider(ctx)
+	return &mockAuthProvider{AuthDeps: p, Release: p.Release}
 }
 
-func (m *mockAuthDeps) GoogleOAuth2Client() client.GoogleOAuth2Client {
+func (m *mockAuthProvider) GoogleOAuth2Client() client.GoogleOAuth2Client {
 	return newMockGoogleOAuth2Client()
 }
 
@@ -84,13 +86,15 @@ func (m *mockGoogleOAuth2Client) VerifyIDToken(ctx context.Context, signed strin
 	}, nil
 }
 
-func MockAuthCreate(t *testing.T) {
+func TestAuthCreate(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
-	d := newMockAuthDeps(ctx)
-	r := resource.RegisterAuthRoutes(mux.NewRouter(), d)
+	p := newMockAuthProvider(ctx)
+	defer p.Release(ctx)
+
+	r := resource.RegisterAuthRoutes(mux.NewRouter(), p)
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/auth", strings.NewReader(`{"googleIdToken":"token"}`))
 
@@ -105,30 +109,30 @@ func MockAuthCreate(t *testing.T) {
 	}
 
 	// test response
-	var m map[string]any
+	var m resource.AuthWithAccessToken
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)
 		return
 	}
-	if v := m["id"]; v == "" {
-		t.Errorf("expected id in response got %#v", v)
+	if m.ID == "" {
+		t.Errorf("expected id in response got %#v", m.ID)
 		return
 	}
-	if v := m["userId"]; v == "" {
-		t.Errorf("expected userId in response got %#v", v)
+	if m.UserID == "" {
+		t.Errorf("expected userId in response got %#v", m.UserID)
 		return
 	}
-	if v := m["scheme"]; v == "" {
-		t.Errorf("expected scheme in response got %#v", v)
+	if m.Scheme == "" {
+		t.Errorf("expected scheme in response got %#v", m.Scheme)
 		return
 	}
-	if v := m["accessToken"]; v == "" {
-		t.Errorf("expected accessToken in response got %#v", v)
+	if m.AccessToken == "" {
+		t.Errorf("expected accessToken in response got %#v", m.AccessToken)
 		return
 	}
-	if v := m["refreshToken"]; v == "" {
-		t.Errorf("expected refreshToken in response got %#v", v)
+	if m.RefreshToken == "" {
+		t.Errorf("expected refreshToken in response got %#v", m.RefreshToken)
 		return
 	}
 }

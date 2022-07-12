@@ -28,7 +28,7 @@ func newMeetingAndJSON() (Meeting, []byte) {
 	return m, j
 }
 
-func MockMeetingMarshalJSON(t *testing.T) {
+func TestMeetingMarshalJSON(t *testing.T) {
 	t.Parallel()
 	m, j := newMeetingAndJSON()
 
@@ -41,7 +41,7 @@ func MockMeetingMarshalJSON(t *testing.T) {
 	}
 }
 
-func MockMeetingUnmarshalJSON(t *testing.T) {
+func TestMeetingUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 	m, j := newMeetingAndJSON()
 
@@ -80,7 +80,7 @@ func newMeetingAndBSON() (Meeting, []byte) {
 	return m, b
 }
 
-func MockMeetingMarshalBSON(t *testing.T) {
+func TestMeetingMarshalBSON(t *testing.T) {
 	t.Parallel()
 	m, b := newMeetingAndBSON()
 
@@ -93,7 +93,7 @@ func MockMeetingMarshalBSON(t *testing.T) {
 	}
 }
 
-func MockMeetingUnmarshalBSON(t *testing.T) {
+func TestMeetingUnmarshalBSON(t *testing.T) {
 	t.Parallel()
 	m, b := newMeetingAndBSON()
 

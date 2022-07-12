@@ -87,10 +87,10 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 	p := newMockParticipantProvider(ctx)
 	defer p.Release(ctx)
 
+	meeting := newMockMeeting(ctx)
+
 	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 	r.Use(middleware.AuthMiddleware(p))
-
-	meeting := newMockMeeting(ctx)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/meetings/"+string(meeting.ID)+"/participants", nil)
@@ -107,34 +107,34 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 	}
 
 	// test response
-	var m map[string]any
+	var m resource.ParticipantWithJoinToken
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)
 		return
 	}
-	if v := m["id"]; v == "" {
-		t.Errorf("expected id in response got %#v", v)
+	if m.ID == "" {
+		t.Errorf("expected id in response got %#v", m.ID)
 		return
 	}
-	if v := m["meetingId"]; v == "" {
-		t.Errorf("expected meetingId in response got %#v", v)
+	if m.MeetingID == "" {
+		t.Errorf("expected meetingId in response got %#v", m.MeetingID)
 		return
 	}
-	if v := m["name"]; v != "Mock User" {
-		t.Errorf(`expected name to be %q got %q`, "Mock User", v)
+	if m.Name != "Mock User" {
+		t.Errorf(`expected name to be %q got %q`, "Mock User", m.Name)
 		return
 	}
-	if v := m["imageUrl"]; v == nil {
-		t.Errorf("expected imageUrl in response got %#v", v)
+	if m.ImageURL == nil {
+		t.Errorf("expected imageUrl in response got %#v", m.ImageURL)
 		return
 	}
-	if v := m["status"]; v != "admitted" {
-		t.Errorf(`expected status to be %q got %q`, "admitted", v)
+	if m.Status != resource.ParticipantStatusAdmitted {
+		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusAdmitted, m.Status)
 		return
 	}
-	if v := m["joinToken"]; v == nil {
-		t.Errorf("expected imageUrl in response got %#v", v)
+	if m.JoinToken == nil {
+		t.Errorf("expected imageUrl in response got %#v", m.JoinToken)
 		return
 	}
 
@@ -152,10 +152,10 @@ func TestParticipantCreateNoAuth(t *testing.T) {
 	p := newMockParticipantProvider(ctx)
 	defer p.Release(ctx)
 
+	meeting := newMockMeeting(ctx)
+
 	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 	r.Use(middleware.AuthMiddleware(p))
-
-	meeting := newMockMeeting(ctx)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/meetings/"+string(meeting.ID)+"/participants", strings.NewReader(`{"name":"My Name"}`))
@@ -171,34 +171,34 @@ func TestParticipantCreateNoAuth(t *testing.T) {
 	}
 
 	// test response
-	var m map[string]any
+	var m resource.ParticipantWithJoinToken
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)
 		return
 	}
-	if v := m["id"]; v == "" {
-		t.Errorf("expected id in response got %#v", v)
+	if m.ID == "" {
+		t.Errorf("expected id in response got %#v", m.ID)
 		return
 	}
-	if v := m["meetingId"]; v == "" {
-		t.Errorf("expected meetingId in response got %#v", v)
+	if m.MeetingID == "" {
+		t.Errorf("expected meetingId in response got %#v", m.MeetingID)
 		return
 	}
-	if v := m["name"]; v != "My Name" {
-		t.Errorf(`expected name to be %q got %q`, "My Name", v)
+	if m.Name != "My Name" {
+		t.Errorf(`expected name to be %q got %q`, "Mock User", m.Name)
 		return
 	}
-	if v := m["imageUrl"]; v != nil {
-		t.Errorf("expected imageUrl to be nil got %#v", v)
+	if m.ImageURL != nil {
+		t.Errorf("expected imageUrl to be nil got %#v", m.ImageURL)
 		return
 	}
-	if v := m["status"]; v != "waiting" {
-		t.Errorf(`expected status to be %q got %q`, "waiting", v)
+	if m.Status != resource.ParticipantStatusWaiting {
+		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusWaiting, m.Status)
 		return
 	}
-	if v := m["joinToken"]; v != nil {
-		t.Errorf("expected joinToken to be nil got %#v", v)
+	if m.JoinToken != nil {
+		t.Errorf("expected joinToken to be nil got %#v", m.JoinToken)
 		return
 	}
 
@@ -215,10 +215,10 @@ func TestParticipantRetrieve(t *testing.T) {
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
-	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 
 	meeting, participant := newMockMeetingAndParticipant(ctx)
 
+	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/meetings/"+string(meeting.ID)+"/participants/"+string(participant.ID), nil)
 
@@ -270,10 +270,10 @@ func TestParticipantRetrieveBadAuth(t *testing.T) {
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
-	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 
 	meeting, participant := newMockMeetingAndParticipant(ctx)
 
+	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/meetings/"+string(meeting.ID)+"/participants/"+string(participant.ID), nil)
 
@@ -331,10 +331,10 @@ func TestParticipantUpdate(t *testing.T) {
 	p := newMockParticipantProvider(ctx)
 	defer p.Release(ctx)
 
+	meeting, participant := newMockMeetingAndParticipant(ctx)
+
 	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 	r.Use(middleware.AuthMiddleware(p))
-
-	meeting, participant := newMockMeetingAndParticipant(ctx)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPut, "/meetings/"+string(meeting.ID)+"/participants/"+string(participant.ID), strings.NewReader(`{"status":"denied"}`))
@@ -351,30 +351,31 @@ func TestParticipantUpdate(t *testing.T) {
 	}
 
 	// test response
-	var m map[string]any
+
+	var m resource.Participant
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)
 		return
 	}
-	if v := m["id"]; v == "" {
-		t.Errorf("expected id in response got %#v", v)
+	if m.ID == "" {
+		t.Errorf("expected id in response got %#v", m.ID)
 		return
 	}
-	if v := m["meetingId"]; v == "" {
-		t.Errorf("expected meetingId in response got %#v", v)
+	if m.MeetingID == "" {
+		t.Errorf("expected meetingId in response got %#v", m.MeetingID)
 		return
 	}
-	if v := m["name"]; v != "Mock User" {
-		t.Errorf(`expected name to be %q got %q`, "Mock User", v)
+	if m.Name != "Mock User" {
+		t.Errorf(`expected name to be %q got %q`, "Mock User", m.Name)
 		return
 	}
-	if v := m["imageUrl"]; v == nil {
-		t.Errorf("expected imageUrl in response got %#v", v)
+	if m.ImageURL == nil {
+		t.Errorf("expected imageUrl in response got %#v", m.ImageURL)
 		return
 	}
-	if v := m["status"]; v != "denied" {
-		t.Errorf(`expected status to be %q got %q`, "denied", v)
+	if m.Status != resource.ParticipantStatusDenied {
+		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusDenied, m.Status)
 		return
 	}
 
@@ -392,10 +393,10 @@ func TestParticipantUpdateBadAuth(t *testing.T) {
 	p := newMockParticipantProvider(ctx)
 	defer p.Release(ctx)
 
+	meeting, participant := newMockMeetingAndParticipant(ctx)
+
 	r := resource.RegisterParticipantRoutes(mux.NewRouter(), p)
 	r.Use(middleware.AuthMiddleware(p))
-
-	meeting, participant := newMockMeetingAndParticipant(ctx)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPut, "/meetings/"+string(meeting.ID)+"/participants/"+string(participant.ID), strings.NewReader(`{"status":"denied"}`))

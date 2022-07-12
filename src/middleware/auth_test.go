@@ -10,10 +10,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-func MockAuthMiddleware(t *testing.T) {
+func TestAuthMiddleware(t *testing.T) {
 	t.Parallel()
-	ds := config.NewAuthConfigProvider()
-	cf := ds.AuthConfig()
+	p := config.NewAuthConfigProvider()
+	cf := p.AuthConfig()
 
 	// create the token
 	token := jwt.New()
@@ -36,7 +36,7 @@ func MockAuthMiddleware(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// create middleware
-	m := AuthMiddleware(ds)
+	m := AuthMiddleware(p)
 	m.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := GetAuthToken(r)
 		if err != nil {
@@ -58,10 +58,10 @@ func MockAuthMiddleware(t *testing.T) {
 	})).ServeHTTP(w, r)
 }
 
-func MockAuthMiddlewareBadToken(t *testing.T) {
+func TestAuthMiddlewareBadToken(t *testing.T) {
 	t.Parallel()
-	ds := config.NewAuthConfigProvider()
-	cf := ds.AuthConfig()
+	p := config.NewAuthConfigProvider()
+	cf := p.AuthConfig()
 
 	// create the token
 	token := jwt.New()
@@ -84,7 +84,7 @@ func MockAuthMiddlewareBadToken(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// create middleware
-	m := AuthMiddleware(ds)
+	m := AuthMiddleware(p)
 	m.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := GetAuthToken(r)
 		if err == nil || err.Error() != "could not verify message using any of the signatures or keys" {
@@ -96,8 +96,8 @@ func MockAuthMiddlewareBadToken(t *testing.T) {
 
 func TestGetAuthTokenParsed(t *testing.T) {
 	t.Parallel()
-	ds := config.NewAuthConfigProvider()
-	cf := ds.AuthConfig()
+	p := config.NewAuthConfigProvider()
+	cf := p.AuthConfig()
 
 	// create request
 	r := httptest.NewRequest(http.MethodGet, "/", nil)

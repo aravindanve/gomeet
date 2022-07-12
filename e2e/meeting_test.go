@@ -47,13 +47,14 @@ func newMockMeeting(ctx context.Context) resource.Meeting {
 	return *mockMeeting
 }
 
-func MockMeetingCreate(t *testing.T) {
+func TestMeetingCreate(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
+
 	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 	r.Use(middleware.AuthMiddleware(p))
 
@@ -72,33 +73,34 @@ func MockMeetingCreate(t *testing.T) {
 	}
 
 	// test response
-	var m map[string]any
+	var m resource.Meeting
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)
 		return
 	}
-	if v := m["id"]; v == "" {
-		t.Errorf("expected id in response got %#v", v)
+	if m.ID == "" {
+		t.Errorf("expected id in response got %#v", m.ID)
 		return
 	}
-	if v := m["userId"]; v == "" {
-		t.Errorf("expected userId in response got %#v", v)
+	if m.UserID == "" {
+		t.Errorf("expected userId in response got %#v", m.UserID)
 		return
 	}
-	if v := m["code"]; v == "" {
-		t.Errorf("expected code in response got %#v", v)
+	if m.Code == "" {
+		t.Errorf("expected code in response got %#v", m.Code)
 		return
 	}
 }
 
-func MockMeetingCreateNoAuth(t *testing.T) {
+func TestMeetingCreateNoAuth(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
+
 	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 	r.Use(middleware.AuthMiddleware(p))
 
@@ -132,17 +134,17 @@ func MockMeetingCreateNoAuth(t *testing.T) {
 	}
 }
 
-func MockMeetingSearch(t *testing.T) {
+func TestMeetingSearch(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
-	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 
 	meeting := newMockMeeting(ctx)
 
+	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/meetings?code="+meeting.Code, nil)
 
@@ -174,17 +176,17 @@ func MockMeetingSearch(t *testing.T) {
 	}
 }
 
-func MockMeetingRetrieve(t *testing.T) {
+func TestMeetingRetrieve(t *testing.T) {
 	t.Parallel()
 	defer panicGuard(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
 	p := provider.NewProvider(ctx)
 	defer p.Release(ctx)
-	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 
 	meeting := newMockMeeting(ctx)
 
+	r := resource.RegisterMeetingRoutes(mux.NewRouter(), p)
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/meetings/"+string(meeting.ID), nil)
 

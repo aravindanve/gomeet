@@ -34,7 +34,7 @@ func newAuthAndJSON() (AuthWithAccessToken, []byte) {
 	return a, j
 }
 
-func MockAuthMarshalJSON(t *testing.T) {
+func TestAuthMarshalJSON(t *testing.T) {
 	t.Parallel()
 	a, j := newAuthAndJSON()
 
@@ -47,7 +47,7 @@ func MockAuthMarshalJSON(t *testing.T) {
 	}
 }
 
-func MockAuthUnmarshalJSON(t *testing.T) {
+func TestAuthUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 	a, j := newAuthAndJSON()
 
@@ -86,7 +86,7 @@ func newAuthAndBSON() (Auth, []byte) {
 	return a, b
 }
 
-func MockAuthMarshalBSON(t *testing.T) {
+func TestAuthMarshalBSON(t *testing.T) {
 	t.Parallel()
 	a, b := newAuthAndBSON()
 
@@ -99,7 +99,7 @@ func MockAuthMarshalBSON(t *testing.T) {
 	}
 }
 
-func MockAuthUnmarshalBSON(t *testing.T) {
+func TestAuthUnmarshalBSON(t *testing.T) {
 	t.Parallel()
 	a, b := newAuthAndBSON()
 
