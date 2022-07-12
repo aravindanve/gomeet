@@ -16,6 +16,7 @@ type MongoClientDeps interface {
 
 type MongoClientProvider interface {
 	MongoClient() *mongo.Client
+	MongoDatabase() *mongo.Database
 }
 
 func NewMongoClient(ctx context.Context, ds MongoClientDeps) *mongo.Client {

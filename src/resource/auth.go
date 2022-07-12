@@ -24,7 +24,8 @@ import (
 )
 
 const (
-	authRefreshTokenTTL = 90 * 24 * time.Hour
+	authRefreshTokenTTL      = 90 * 24 * time.Hour
+	AuthRefreshTokenCountMax = 50
 )
 
 const (
@@ -49,6 +50,25 @@ type Auth struct {
 	UpdatedAt             time.Time  `json:"updatedAt" bson:"updatedAt"`
 }
 
+func newAuth(userID ResourceID) (*Auth, error) {
+	// create refresh token
+	buf := make([]byte, 128)
+	_, err := rand.Read(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken := base64.RawURLEncoding.EncodeToString(buf)
+	refreshTokenExpiresAt := time.Now().Add(authRefreshTokenTTL)
+
+	// create auth
+	return &Auth{
+		UserID:                userID,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshTokenExpiresAt,
+	}, nil
+}
+
 type AuthWithAccessToken struct {
 	Auth
 	Scheme               AuthScheme `json:"scheme"`
@@ -59,6 +79,33 @@ type AuthWithAccessToken struct {
 type AuthAccessTokenPayload struct {
 	ID     ResourceID `json:"id"`
 	UserID ResourceID `json:"userId"`
+}
+
+func newAuthWithAccessToken(cf config.AuthConfig, auth *Auth) (*AuthWithAccessToken, error) {
+	// create access token
+	token, err := jwt.NewBuilder().
+		Issuer(cf.Issuer).
+		Expiration(time.Now().Add(cf.TTL)).
+		Claim("id", auth.ID).
+		Claim("userId", auth.UserID).
+		Build()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// sign access token
+	signed, err := jwt.Sign(token, jwt.WithKey(cf.Algorithm, cf.Secret))
+	if err != nil {
+		return nil, err
+	}
+
+	return &AuthWithAccessToken{
+		Auth:                 *auth,
+		Scheme:               authSchemeBearer,
+		AccessToken:          string(signed),
+		AccessTokenExpiresAt: token.Expiration(),
+	}, nil
 }
 
 type AuthCollectionProvider interface {
@@ -74,10 +121,21 @@ func NewAuthCollection(ctx context.Context, db *mongo.Database) *AuthCollection 
 
 	// create indexes
 	go func() {
+		// index for expire
 		_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
 			Keys:    bson.D{{Key: "refreshTokenExpiresAt", Value: 1}},
 			Options: options.Index().SetExpireAfterSeconds(0),
 		})
+		// index for gc sort
+		if err == nil {
+			_, err = collection.Indexes().CreateOne(ctx, mongo.IndexModel{
+				Keys: bson.D{
+					{Key: "userId", Value: 1},
+					{Key: "refreshTokenExpiresAt", Value: 1},
+					{Key: "_id", Value: 1},
+				},
+			})
+		}
 
 		if err != nil {
 			msg := fmt.Sprintf("error creating mongo indexes: %s", err.Error())
@@ -104,6 +162,7 @@ func (c *AuthCollection) FindOneByIDAndRefreshToken(
 	err = c.collection.FindOne(ctx, bson.D{
 		{Key: "_id", Value: _id},
 		{Key: "refreshToken", Value: refreshToken},
+		{Key: "refreshTokenExpiresAt", Value: bson.D{{Key: "$gte", Value: time.Now()}}},
 	}).Decode(&auth)
 
 	if err != nil && err == mongo.ErrNoDocuments {
@@ -167,6 +226,61 @@ func (c *AuthCollection) Save(
 	}
 }
 
+// keeps latest auths defined by max count
+func (c *AuthCollection) gc(
+	ctx context.Context, userID ResourceID, countMax int,
+) error {
+	cur, err := c.collection.Find(ctx, bson.D{
+		{Key: "userId", Value: userID},
+	}, options.Find().
+		SetSort(bson.D{
+			{Key: "refreshTokenExpiresAt", Value: -1},
+			{Key: "_id", Value: -1},
+		}).
+		SetSkip(int64(countMax)).
+		SetLimit(1),
+	)
+	defer func() { cur.Close(ctx) }()
+
+	if err != nil {
+		return err
+	}
+
+	var docs []Auth
+	err = cur.All(ctx, &docs)
+	if err != nil {
+		return err
+	}
+
+	// return if no docs matched
+	if len(docs) <= 0 {
+		return nil
+	}
+
+	doc := docs[0]
+
+	// delete all docs before the found doc
+	_, err = c.collection.DeleteMany(ctx, bson.D{
+		{Key: "userId", Value: userID},
+		{Key: "$or", Value: bson.A{
+			bson.D{{Key: "_id", Value: doc.ID}},
+			bson.D{{Key: "refreshTokenExpiresAt", Value: bson.D{
+				{Key: "$lt", Value: doc.RefreshTokenExpiresAt},
+			}}},
+			bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "refreshTokenExpiresAt", Value: bson.D{
+					{Key: "$eq", Value: doc.RefreshTokenExpiresAt},
+				}}},
+				bson.D{{Key: "_id", Value: bson.D{
+					{Key: "$lt", Value: doc.ID},
+				}}},
+			}}},
+		}},
+	})
+
+	return err
+}
+
 type AuthController struct {
 	AuthDeps
 }
@@ -182,7 +296,6 @@ type AuthCreateBody struct {
 func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Request) {
 	// decode body
 	b := &AuthCreateBody{}
-
 	if err := json.NewDecoder(r.Body).Decode(b); err != nil {
 		util.WriteJSONError(w, http.StatusBadRequest, err.Error())
 		return
@@ -239,22 +352,11 @@ func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// create refresh token
-	buf := make([]byte, 128)
-	_, err = rand.Read(buf)
+	// create auth
+	auth, err := newAuth(user.ID)
 	if err != nil {
 		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
 		return
-	}
-
-	refreshToken := base64.RawURLEncoding.EncodeToString(buf)
-	refreshTokenExpiresAt := time.Now().Add(authRefreshTokenTTL)
-
-	// create auth
-	auth := &Auth{
-		UserID:                user.ID,
-		RefreshToken:          refreshToken,
-		RefreshTokenExpiresAt: refreshTokenExpiresAt,
 	}
 
 	// save auth
@@ -264,36 +366,21 @@ func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// create access token
-	cf := c.AuthConfig()
-	token, err := jwt.NewBuilder().
-		Issuer(cf.Issuer).
-		Expiration(time.Now().Add(cf.TTL)).
-		Claim("id", auth.ID).
-		Claim("userId", user.ID).
-		Build()
-
-	if err != nil {
-		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	// sign access token
-	signed, err := jwt.Sign(token, jwt.WithKey(cf.Algorithm, cf.Secret))
-	if err != nil {
-		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	// create response
-	response := &AuthWithAccessToken{
-		Auth:                 *auth,
-		Scheme:               authSchemeBearer,
-		AccessToken:          string(signed),
-		AccessTokenExpiresAt: token.Expiration(),
+	res, err := newAuthWithAccessToken(c.AuthConfig(), auth)
+	if err != nil {
+		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	util.WriteJSONResponse(w, http.StatusOK, response)
+	util.WriteJSONResponse(w, http.StatusOK, res)
+
+	// run gc
+	go func(userID ResourceID) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		c.AuthCollection().gc(ctx, userID, AuthRefreshTokenCountMax)
+	}(auth.UserID)
 }
 
 type AuthRefreshBody struct {
@@ -301,15 +388,67 @@ type AuthRefreshBody struct {
 }
 
 func (c *AuthController) AuthRefreshHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO
-	// params := mux.Vars(r)
+	// get auth id
+	authID := mux.Vars(r)["authId"]
+	if authID == "" {
+		util.WriteJSONError(w, http.StatusBadRequest, "Missing authId in request path")
+		return
+	}
+
+	// decode body
+	b := &AuthRefreshBody{}
+	if err := json.NewDecoder(r.Body).Decode(b); err != nil {
+		util.WriteJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if b.RefreshToken == "" {
+		util.WriteJSONError(w, http.StatusBadRequest, "Missing refresh token in request body")
+		return
+	}
+
+	// find one by id
+	authCurr, err := c.AuthCollection().FindOneByIDAndRefreshToken(r.Context(), ResourceID(authID), b.RefreshToken)
+	if err != nil {
+		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if authCurr == nil {
+		util.WriteJSONError(w, http.StatusUnauthorized, "Authorization invalid or expired")
+		return
+	}
+
+	// create auth next
+	authNext, err := newAuth(authCurr.UserID)
+	if err != nil {
+		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// update auth next
+	authNext.ID = authCurr.ID
+
+	// save auth next
+	err = c.AuthCollection().Save(r.Context(), authNext)
+	if err != nil {
+		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// create response
+	res, err := newAuthWithAccessToken(c.AuthConfig(), authNext)
+	if err != nil {
+		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	util.WriteJSONResponse(w, http.StatusOK, res)
 }
 
 func RegisterAuthRoutes(r *mux.Router, ds AuthDeps) *mux.Router {
 	c := NewAuthController(ds)
 
 	r.HandleFunc("/auth", c.AuthCreateHandler).Methods(http.MethodOptions, http.MethodPost)
-	r.HandleFunc("/auth/{authId}", c.AuthRefreshHandler).Methods(http.MethodOptions, http.MethodPut)
+	r.HandleFunc("/auth/{authId}/refresh", c.AuthRefreshHandler).Methods(http.MethodOptions, http.MethodPut)
 
 	return r
 }

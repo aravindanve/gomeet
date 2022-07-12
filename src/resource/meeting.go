@@ -203,11 +203,11 @@ func (c *MeetingController) MeetingSearchHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	response := map[string]any{
+	res := map[string]any{
 		"meetings": meetings,
 	}
 
-	util.WriteJSONResponse(w, http.StatusOK, response)
+	util.WriteJSONResponse(w, http.StatusOK, res)
 }
 
 func (c *MeetingController) MeetingRetrieveHandler(w http.ResponseWriter, r *http.Request) {

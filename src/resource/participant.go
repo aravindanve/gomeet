@@ -304,13 +304,13 @@ func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, 
 	}
 
 	// create response
-	response, err := newParticipantWithJoinToken(c.LiveKitConfig(), participant, meeting.Code, admin)
+	res, err := newParticipantWithJoinToken(c.LiveKitConfig(), participant, meeting.Code, admin)
 	if err != nil {
 		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	util.WriteJSONResponse(w, http.StatusOK, response)
+	util.WriteJSONResponse(w, http.StatusOK, res)
 }
 
 func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter, r *http.Request) {
@@ -377,7 +377,7 @@ func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter
 	}
 
 	// create response
-	response, err := newParticipantWithJoinToken(c.LiveKitConfig(), participant, meeting.Code, false)
+	res, err := newParticipantWithJoinToken(c.LiveKitConfig(), participant, meeting.Code, false)
 	if err != nil {
 		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -390,7 +390,7 @@ func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter
 		return
 	}
 
-	util.WriteJSONResponse(w, http.StatusOK, response)
+	util.WriteJSONResponse(w, http.StatusOK, res)
 }
 
 type ParticipantUpdateBody struct {
@@ -450,13 +450,13 @@ func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, 
 		util.WriteJSONError(w, http.StatusUnauthorized, "Only meeting admins can update participants")
 		return
 	}
+
 	// decode body
 	b := &ParticipantUpdateBody{}
 	if err := json.NewDecoder(r.Body).Decode(b); err != nil {
 		util.WriteJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
 	if b.Status == "" {
 		util.WriteJSONError(w, http.StatusBadRequest, "Missing status in request body")
 		return
