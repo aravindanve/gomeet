@@ -3,14 +3,14 @@ package config
 import "time"
 
 const (
-	liveKitJoinTokenTTL = 15 * time.Minute
+	liveKitRoomTokenTTL = 15 * time.Minute
 )
 
 type LiveKitConfig struct {
 	APIURL       string
 	APIKey       string
 	APISecret    string
-	JoinTokenTTL time.Duration
+	RoomTokenTTL time.Duration
 }
 
 type LiveKitConfigProvider interface {
@@ -31,7 +31,7 @@ func NewLiveKitConfigProvider() LiveKitConfigProvider {
 			APIURL:       GetenvString("LIVEKIT_API_URL"),
 			APIKey:       GetenvString("LIVEKIT_API_KEY"),
 			APISecret:    GetenvString("LIVEKIT_API_SECRET"),
-			JoinTokenTTL: liveKitJoinTokenTTL,
+			RoomTokenTTL: liveKitRoomTokenTTL,
 		},
 	}
 }

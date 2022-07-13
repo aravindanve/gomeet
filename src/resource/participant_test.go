@@ -11,10 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func newParticipantAndJSON() (ParticipantWithJoinToken, []byte) {
+func newParticipantAndJSON() (ParticipantWithRoomTokens, []byte) {
 	var t, _ = time.Parse(time.RFC3339, "2022-01-01T00:00:00.000Z")
-	var s = "some-token"
-	var p = ParticipantWithJoinToken{
+	var p = ParticipantWithRoomTokens{
 		Participant: Participant{
 			ID:        "some-id",
 			MeetingID: "some-id",
@@ -25,14 +24,19 @@ func newParticipantAndJSON() (ParticipantWithJoinToken, []byte) {
 			UpdatedAt: t,
 			ExpiresAt: t,
 		},
-		JoinToken:          &s,
-		JoinTokenExpiresAt: &t,
+		RoomTokens: []RoomToken{{
+			RoomName:             "some-room",
+			RoomType:             RoomTypeConference,
+			AccessToken:          "some-token",
+			AccessTokenExpiresAt: t,
+		}},
 	}
 
 	var j = []byte(`{"id":"some-id","meetingId":"some-id","name":"Aravindan",` +
 		`"imageUrl":null,"status":"waiting","createdAt":"2022-01-01T00:00:00Z",` +
 		`"updatedAt":"2022-01-01T00:00:00Z","expiresAt":"2022-01-01T00:00:00Z",` +
-		`"joinToken":"some-token","joinTokenExpiresAt":"2022-01-01T00:00:00Z"}`)
+		`"roomTokens":[{"roomName":"some-room","roomType":"conference","accessToken":"some-token",` +
+		`"accessTokenExpiresAt":"2022-01-01T00:00:00Z"}]}`)
 
 	return p, j
 }
@@ -54,7 +58,7 @@ func TestParticipantUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 	p, j := newParticipantAndJSON()
 
-	var value ParticipantWithJoinToken
+	var value ParticipantWithRoomTokens
 	err := json.Unmarshal([]byte(j), &value)
 	if err != nil {
 		t.Fatalf("Error unmarshalling json: %#v", err)
