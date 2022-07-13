@@ -20,8 +20,11 @@ import (
 )
 
 const (
-	participantTTL = 30 * time.Minute
+	participantTTL               = 30 * time.Minute
+	participantWaitingRoomSuffix = "_waiting"
 )
+
+type ParticipantStatus string
 
 const (
 	ParticipantStatusWaiting  ParticipantStatus = "waiting"
@@ -29,7 +32,12 @@ const (
 	ParticipantStatusDenied   ParticipantStatus = "denied"
 )
 
-type ParticipantStatus string
+type RoomType string
+
+const (
+	RoomTypeWaiting    RoomType = "waiting"
+	RoomTypeConference RoomType = "conference"
+)
 
 type ParticipantDeps interface {
 	config.LiveKitConfigProvider
@@ -50,10 +58,16 @@ type Participant struct {
 	ExpiresAt time.Time         `json:"expiresAt" bson:"expiresAt"`
 }
 
-type ParticipantWithJoinToken struct {
+type ParticipantWithRoomTokens struct {
 	Participant
-	JoinToken          *string    `json:"joinToken"`
-	JoinTokenExpiresAt *time.Time `json:"joinTokenExpiresAt"`
+	RoomTokens []RoomToken `json:"roomTokens"`
+}
+
+type RoomToken struct {
+	RoomName             string    `json:"roomName"`
+	RoomType             RoomType  `json:"roomType"`
+	AccessToken          string    `json:"accessToken"`
+	AccessTokenExpiresAt time.Time `json:"accessTokenExpiresAt"`
 }
 
 type ParticipantMetadata struct {
@@ -61,18 +75,21 @@ type ParticipantMetadata struct {
 	ImageURL *string `json:"imageUrl"`
 }
 
-func newParticipantWithJoinToken(cf config.LiveKitConfig, participant *Participant, room string, roomAdmin bool) (*ParticipantWithJoinToken, error) {
-	if participant.Status == ParticipantStatusAdmitted {
+func newParticipantWithRoomTokens(cf config.LiveKitConfig, participant *Participant, room string, roomAdmin bool) (*ParticipantWithRoomTokens, error) {
+	var roomTokens []RoomToken
+
+	// issue conference room token to admin or admitted
+	if roomAdmin || participant.Status == ParticipantStatusAdmitted {
 		at := auth.NewAccessToken(cf.APIKey, cf.APISecret)
-		cp := true
+		tr := true
 		grant := &auth.VideoGrant{
 			Room:           room,
 			RoomAdmin:      roomAdmin,
-			RoomCreate:     roomAdmin,
+			RoomCreate:     true,
 			RoomJoin:       true,
-			CanPublish:     &cp,
-			CanPublishData: &cp,
-			CanSubscribe:   &cp,
+			CanPublish:     &tr,
+			CanPublishData: &tr,
+			CanSubscribe:   &tr,
 		}
 		metadata, err := json.Marshal(ParticipantMetadata{
 			Name:     participant.Name,
@@ -85,27 +102,65 @@ func newParticipantWithJoinToken(cf config.LiveKitConfig, participant *Participa
 		at.AddGrant(grant).
 			SetIdentity(string(participant.ID)).
 			SetMetadata(string(metadata)).
-			SetValidFor(cf.JoinTokenTTL)
+			SetValidFor(cf.RoomTokenTTL)
 
 		token, err := at.ToJWT()
 		if err != nil {
 			return nil, err
 		}
 
-		tokenExpiresAt := time.Now().Add(cf.JoinTokenTTL)
-
-		return &ParticipantWithJoinToken{
-			Participant:        *participant,
-			JoinToken:          &token,
-			JoinTokenExpiresAt: &tokenExpiresAt,
-		}, nil
-	} else {
-		return &ParticipantWithJoinToken{
-			Participant:        *participant,
-			JoinToken:          nil,
-			JoinTokenExpiresAt: nil,
-		}, nil
+		roomTokens = append(roomTokens, RoomToken{
+			RoomName:             room,
+			RoomType:             RoomTypeConference,
+			AccessToken:          token,
+			AccessTokenExpiresAt: time.Now().Add(cf.RoomTokenTTL),
+		})
 	}
+
+	// issue waiting room token to admin or waiting
+	if roomAdmin || participant.Status == ParticipantStatusWaiting {
+		waitingRoom := room + participantWaitingRoomSuffix
+
+		at := auth.NewAccessToken(cf.APIKey, cf.APISecret)
+		fa := false
+		grant := &auth.VideoGrant{
+			Room:           waitingRoom,
+			RoomCreate:     true,
+			RoomJoin:       true,
+			CanPublish:     &fa,
+			CanPublishData: &fa,
+			CanSubscribe:   &fa,
+		}
+		metadata, err := json.Marshal(ParticipantMetadata{
+			Name:     participant.Name,
+			ImageURL: participant.ImageURL,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		at.AddGrant(grant).
+			SetIdentity(string(participant.ID)).
+			SetMetadata(string(metadata)).
+			SetValidFor(cf.RoomTokenTTL)
+
+		token, err := at.ToJWT()
+		if err != nil {
+			return nil, err
+		}
+
+		roomTokens = append(roomTokens, RoomToken{
+			RoomName:             room,
+			RoomType:             RoomTypeWaiting,
+			AccessToken:          token,
+			AccessTokenExpiresAt: time.Now().Add(cf.RoomTokenTTL),
+		})
+	}
+
+	return &ParticipantWithRoomTokens{
+		Participant: *participant,
+		RoomTokens:  roomTokens,
+	}, nil
 }
 
 type ParticipantCollectionProvider interface {
@@ -271,7 +326,7 @@ func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, 
 		ExpiresAt: now.Add(participantTTL),
 	}
 
-	// save participant and notify if waiting
+	// save participant
 	if status == ParticipantStatusWaiting {
 		// save participant
 		err = c.ParticipantCollection().Save(r.Context(), participant)
@@ -279,32 +334,10 @@ func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, 
 			util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
-		// notify room about waiting participant
-		data, err := util.EncodeLiveKitDataJSON(map[string]any{
-			"type":     "participantWaiting",
-			"id":       participant.ID,
-			"name":     participant.Name,
-			"imageUrl": participant.ImageURL,
-		})
-		if err != nil {
-			util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		_, err = c.LiveKitClient().SendData(r.Context(), &livekit.SendDataRequest{
-			Room: meeting.Code,
-			Data: data,
-			Kind: livekit.DataPacket_RELIABLE,
-		})
-		if err != nil {
-			util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
 	}
 
 	// create response
-	res, err := newParticipantWithJoinToken(c.LiveKitConfig(), participant, meeting.Code, admin)
+	res, err := newParticipantWithRoomTokens(c.LiveKitConfig(), participant, meeting.Code, admin)
 	if err != nil {
 		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -314,7 +347,7 @@ func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, 
 }
 
 func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter, r *http.Request) {
-	// decode join token
+	// decode room token
 	authHeader := r.Header.Get("authorization")
 	authHeaderParts := strings.Split(authHeader, " ")
 	if len(authHeaderParts) < 2 || authHeaderParts[0] != "Bearer" {
@@ -377,7 +410,7 @@ func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter
 	}
 
 	// create response
-	res, err := newParticipantWithJoinToken(c.LiveKitConfig(), participant, meeting.Code, false)
+	res, err := newParticipantWithRoomTokens(c.LiveKitConfig(), participant, meeting.Code, false)
 	if err != nil {
 		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -477,7 +510,7 @@ func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, 
 		return
 	}
 
-	// notify room about updated participant
+	// notify waiting room about updated participant
 	var _type string
 	if participant.Status == ParticipantStatusAdmitted {
 		_type = "participantAdmitted"
@@ -495,7 +528,7 @@ func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, 
 	}
 
 	_, err = c.LiveKitClient().SendData(r.Context(), &livekit.SendDataRequest{
-		Room: meeting.Code,
+		Room: meeting.Code + participantWaitingRoomSuffix,
 		Data: data,
 		Kind: livekit.DataPacket_RELIABLE,
 	})

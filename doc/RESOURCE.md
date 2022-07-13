@@ -89,7 +89,7 @@ type Meeting = {
 Defines a participant in a meeting
 
 - `/meetings/:meetingId/participants` _POST_
-- `/meetings/:meetingId/participants/:participantId` _PUT_, _GET_ (poll)
+- `/meetings/:meetingId/participants/:participantId` _PUT_, _GET_
 
 ```ts
 // Participant expires when:
@@ -108,9 +108,13 @@ type Participant = {
   expiresAt: string; // ttl: 30m
 };
 
-type ParticipantWithJoinToken = Participant & {
-  token: string | null;
-  tokenExpiresAt: string;
+type ParticipantWithRoomTokens = Participant & {
+  roomTokens: {
+    roomName: string;
+    roomType: "waiting" | "conference";
+    accessToken: string | null;
+    accessTokenExpiresAt: string;
+  }[];
 };
 
 type ParticipantTokenPayload = {

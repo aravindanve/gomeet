@@ -107,7 +107,7 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 	}
 
 	// test response
-	var m resource.ParticipantWithJoinToken
+	var m resource.ParticipantWithRoomTokens
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)
@@ -133,14 +133,38 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusAdmitted, m.Status)
 		return
 	}
-	if m.JoinToken == nil {
-		t.Errorf("expected imageUrl in response got %#v", m.JoinToken)
+	if len(m.RoomTokens) != 2 {
+		t.Errorf("expected roomTokens to have 2 items got %#v", len(m.RoomTokens))
+		return
+	}
+	if m.RoomTokens[0].RoomName == "" {
+		t.Errorf("expected roomName in room token 0 got %#v", m.RoomTokens[0].RoomName)
+		return
+	}
+	if m.RoomTokens[0].RoomType != resource.RoomTypeConference {
+		t.Errorf(`expected roomType in room token 0 to be %q got %q`, resource.RoomTypeConference, m.RoomTokens[0].RoomType)
+		return
+	}
+	if m.RoomTokens[0].AccessToken == "" {
+		t.Errorf("expected accessToken in room toke 0 got %#v", m.RoomTokens[0].AccessToken)
+		return
+	}
+	if m.RoomTokens[1].RoomName == "" {
+		t.Errorf("expected roomName in room token 1 got %#v", m.RoomTokens[0].RoomName)
+		return
+	}
+	if m.RoomTokens[1].RoomType != resource.RoomTypeWaiting {
+		t.Errorf(`expected roomType in room token 1 to be %q got %q`, resource.RoomTypeWaiting, m.RoomTokens[0].RoomType)
+		return
+	}
+	if m.RoomTokens[1].AccessToken == "" {
+		t.Errorf("expected accessToken in room token 1 got %#v", m.RoomTokens[0].AccessToken)
 		return
 	}
 
 	// test livekit send data
 	if p.livekitClient.sendDataReq != nil {
-		t.Errorf("expected livekit send data to be nil got %#v", err)
+		t.Errorf("expected livekit send data to be nil got %#v", p.livekitClient.sendDataReq)
 	}
 }
 
@@ -171,7 +195,7 @@ func TestParticipantCreateNoAuth(t *testing.T) {
 	}
 
 	// test response
-	var m resource.ParticipantWithJoinToken
+	var m resource.ParticipantWithRoomTokens
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
 		t.Errorf("expected error to be nil got %#v", err)
@@ -197,14 +221,26 @@ func TestParticipantCreateNoAuth(t *testing.T) {
 		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusWaiting, m.Status)
 		return
 	}
-	if m.JoinToken != nil {
-		t.Errorf("expected joinToken to be nil got %#v", m.JoinToken)
+	if len(m.RoomTokens) != 1 {
+		t.Errorf("expected roomTokens to have 1 items got %#v", len(m.RoomTokens))
+		return
+	}
+	if m.RoomTokens[0].RoomName == "" {
+		t.Errorf("expected roomName in room token 0 got %#v", m.RoomTokens[0].RoomName)
+		return
+	}
+	if m.RoomTokens[0].RoomType != resource.RoomTypeWaiting {
+		t.Errorf(`expected roomType in room token 0 to be %q got %q`, resource.RoomTypeWaiting, m.RoomTokens[0].RoomType)
+		return
+	}
+	if m.RoomTokens[0].AccessToken == "" {
+		t.Errorf("expected accessToken in room toke 0 got %#v", m.RoomTokens[0].AccessToken)
 		return
 	}
 
 	// test livekit send data
-	if p.livekitClient.sendDataReq == nil {
-		t.Errorf("expected livekit send data to be set got %#v", nil)
+	if p.livekitClient.sendDataReq != nil {
+		t.Errorf("expected livekit send data to be nil got %#v", p.livekitClient.sendDataReq)
 	}
 }
 
@@ -351,7 +387,6 @@ func TestParticipantUpdate(t *testing.T) {
 	}
 
 	// test response
-
 	var m resource.Participant
 	err := json.NewDecoder(w.Result().Body).Decode(&m)
 	if err != nil {
@@ -381,7 +416,7 @@ func TestParticipantUpdate(t *testing.T) {
 
 	// test livekit send data
 	if p.livekitClient.sendDataReq == nil {
-		t.Errorf("expected livekit send data to be set got %#v", nil)
+		t.Errorf("expected livekit send data to be set got %#v", p.livekitClient.sendDataReq)
 	}
 }
 
