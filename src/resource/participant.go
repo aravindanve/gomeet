@@ -416,11 +416,13 @@ func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter
 		return
 	}
 
-	// delete participant
-	err = c.ParticipantCollection().DeleteOneByID(r.Context(), participant.ID)
-	if err != nil {
-		util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
-		return
+	// delete participant if not waiting
+	if participant.Status != ParticipantStatusWaiting {
+		err = c.ParticipantCollection().DeleteOneByID(r.Context(), participant.ID)
+		if err != nil {
+			util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 
 	util.WriteJSONResponse(w, http.StatusOK, res)
