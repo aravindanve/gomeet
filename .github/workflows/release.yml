@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          # In order:
+          # * Module download cache
+          # * Build cache (Linux)
+          # * Build cache (Mac)
+          # * Build cache (Windows)
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+            ~\AppData\Local\go-build
+          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go-version }}-
+
+      - name: Run unit tests
+        run: make test
+
+      - name: Run integration tests
+        run: make e2e
+
+      - name: Set up env for build
+        run: |
+          echo "TAG=$(TZ=UTC date +%Y%m%d-%H%M%S)-$(echo ${{ github.sha }} | head -c7)" >> $GITHUB_ENV
+
+      - name: Login to container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build container image
+        run: docker build -t  ghcr.io/${{ github.repository }}:$TAG .
+
+      - name: Push container image to registry
+        run: docker push  ghcr.io/${{ github.repository }}:$TAG
+
+      # # Configure secrets to deploy to your DigitalOcean Kubernetes
+      #
+      # - name: Install doctl
+      #   uses: digitalocean/action-doctl@v2
+      #   with:
+      #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      # - name: Save kubeconfig
+      #   run: doctl kubernetes cluster kubeconfig save --expiry-seconds 1200 ${{ secrets.K8S_CLUSTER_NAME }}
+
+      # - name: Deploy to k8s
+      #   run: kubectl set image deployment/$K8S_DEPLOYMENT_NAME ghcr.io/${{ github.repository }}=ghcr.io/${{ github.repository }}:$TAG
+
+      # - name: Verify k8s deployment
+      #   run: kubectl rollout status deployment/$K8S_DEPLOYMENT_NAME
