@@ -59,7 +59,10 @@ jobs:
         run: docker build -t  ghcr.io/${{ github.repository }}:$TAG .
 
       - name: Push container image to registry
-        run: docker push  ghcr.io/${{ github.repository }}:$TAG
+        run: |
+          docker push  ghcr.io/${{ github.repository }}:$TAG
+          docker tag  ghcr.io/${{ github.repository }}:$TAG ghcr.io/${{ github.repository }}:latest
+          docker push  ghcr.io/${{ github.repository }}:latest
 
       # # Configure secrets to deploy to your DigitalOcean Kubernetes
       #
