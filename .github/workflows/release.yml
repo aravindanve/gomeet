@@ -75,7 +75,7 @@ jobs:
       #   run: doctl kubernetes cluster kubeconfig save --expiry-seconds 1200 ${{ secrets.K8S_CLUSTER_NAME }}
 
       # - name: Deploy to k8s
-      #   run: kubectl set image deployment/$K8S_DEPLOYMENT_NAME ghcr.io/${{ github.repository }}=ghcr.io/${{ github.repository }}:$TAG
+      #   run: kubectl set image deployment/$K8S_DEPLOYMENT_NAME $K8S_CONTAINER_NAME=ghcr.io/${{ github.repository }}:$TAG
 
       # - name: Verify k8s deployment
       #   run: kubectl rollout status deployment/$K8S_DEPLOYMENT_NAME
