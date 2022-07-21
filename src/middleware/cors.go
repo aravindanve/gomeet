@@ -14,6 +14,10 @@ func CORSMiddleware() mux.MiddlewareFunc {
 				w.Header().Set("access-control-allow-origin", h)
 				w.Header().Set("access-control-allow-credentials", "true")
 
+				if h := r.Header.Get("access-control-request-headers"); h != "" {
+					w.Header().Set("access-control-allow-headers", h)
+				}
+
 				if m := r.Method; m == http.MethodOptions {
 					w.Header().Set("access-control-allow-methods", "GET,HEAD,PUT,POST,DELETE,PATCH")
 					w.WriteHeader(http.StatusNoContent)
