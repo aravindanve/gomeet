@@ -52,7 +52,7 @@ func (c *SessionController) SessionRetrieveHandler(w http.ResponseWriter, r *htt
 func RegisterSessionRoutes(r *mux.Router, ds SessionDeps) *mux.Router {
 	c := NewSessionController(ds)
 
-	r.HandleFunc("/session", c.SessionRetrieveHandler).Methods(http.MethodOptions, http.MethodGet)
+	r.HandleFunc("/session", c.SessionRetrieveHandler).Methods(http.MethodGet)
 
 	return r
 }

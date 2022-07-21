@@ -545,9 +545,9 @@ func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, 
 func RegisterParticipantRoutes(r *mux.Router, ds ParticipantDeps) *mux.Router {
 	c := NewParticipantController(ds)
 
-	r.HandleFunc("/meetings/{meetingId}/participants", c.ParticipantCreateHandler).Methods(http.MethodOptions, http.MethodPost)
-	r.HandleFunc("/meetings/{meetingId}/participants/{participantId}", c.ParticipantRetrieveHandler).Methods(http.MethodOptions, http.MethodGet)
-	r.HandleFunc("/meetings/{meetingId}/participants/{participantId}", c.ParticipantUpdateHandler).Methods(http.MethodOptions, http.MethodPut)
+	r.HandleFunc("/meetings/{meetingId}/participants", c.ParticipantCreateHandler).Methods(http.MethodPost)
+	r.HandleFunc("/meetings/{meetingId}/participants/{participantId}", c.ParticipantRetrieveHandler).Methods(http.MethodGet)
+	r.HandleFunc("/meetings/{meetingId}/participants/{participantId}", c.ParticipantUpdateHandler).Methods(http.MethodPut)
 
 	return r
 }

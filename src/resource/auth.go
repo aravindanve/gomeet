@@ -446,8 +446,8 @@ func (c *AuthController) AuthRefreshHandler(w http.ResponseWriter, r *http.Reque
 func RegisterAuthRoutes(r *mux.Router, ds AuthDeps) *mux.Router {
 	c := NewAuthController(ds)
 
-	r.HandleFunc("/auth", c.AuthCreateHandler).Methods(http.MethodOptions, http.MethodPost)
-	r.HandleFunc("/auth/{authId}/refresh", c.AuthRefreshHandler).Methods(http.MethodOptions, http.MethodPut)
+	r.HandleFunc("/auth", c.AuthCreateHandler).Methods(http.MethodPost)
+	r.HandleFunc("/auth/{authId}/refresh", c.AuthRefreshHandler).Methods(http.MethodPut)
 
 	return r
 }

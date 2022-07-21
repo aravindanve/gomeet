@@ -235,9 +235,9 @@ func (c *MeetingController) MeetingRetrieveHandler(w http.ResponseWriter, r *htt
 func RegisterMeetingRoutes(r *mux.Router, ds MeetingDeps) *mux.Router {
 	c := NewMeetingController(ds)
 
-	r.HandleFunc("/meetings", c.MeetingSearchHandler).Methods(http.MethodOptions, http.MethodGet).Queries("code", "{code}")
-	r.HandleFunc("/meetings", c.MeetingCreateHandler).Methods(http.MethodOptions, http.MethodPost)
-	r.HandleFunc("/meetings/{meetingId}", c.MeetingRetrieveHandler).Methods(http.MethodOptions, http.MethodGet)
+	r.HandleFunc("/meetings", c.MeetingSearchHandler).Methods(http.MethodGet).Queries("code", "{code}")
+	r.HandleFunc("/meetings", c.MeetingCreateHandler).Methods(http.MethodPost)
+	r.HandleFunc("/meetings/{meetingId}", c.MeetingRetrieveHandler).Methods(http.MethodGet)
 
 	return r
 }
