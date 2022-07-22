@@ -64,7 +64,13 @@ jobs:
           docker tag  ghcr.io/${{ github.repository }}:$TAG ghcr.io/${{ github.repository }}:latest
           docker push  ghcr.io/${{ github.repository }}:latest
 
-      # # Configure secrets to deploy to your DigitalOcean Kubernetes
+      ## Deploy using a custom workflow
+      - name: Run deploy workflow
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: gh workflow run "${{ secrets.DEPLOY_WORKFLOW }}" -R "${{ secrets.DEPLOY_WORKFLOW_REPO }}" -f tag="$TAG"
+
+      ## Deploy to your DigitalOcean kubernetes cluster
       #
       # - name: Install doctl
       #   uses: digitalocean/action-doctl@v2
@@ -72,7 +78,7 @@ jobs:
       #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       # - name: Save kubeconfig
-      #   run: doctl kubernetes cluster kubeconfig save --expiry-seconds 1200 ${{ secrets.K8S_CLUSTER_NAME }}
+      #   run: doctl kubernetes cluster kubeconfig save --expiry-seconds 1200 ${{ secrets.DIGITALOCEAN_K8S_CLUSTER_NAME }}
 
       # - name: Deploy to k8s
       #   run: kubectl set image deployment/$K8S_DEPLOYMENT_NAME $K8S_CONTAINER_NAME=ghcr.io/${{ github.repository }}:$TAG
