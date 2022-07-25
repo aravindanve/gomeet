@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aravindanve/gomeet-server/src/provider"
-	"github.com/aravindanve/gomeet-server/src/route"
+	"github.com/aravindanve/livemeet-server/src/provider"
+	"github.com/aravindanve/livemeet-server/src/route"
 	"github.com/gorilla/mux"
 )
 

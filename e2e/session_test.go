@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aravindanve/gomeet-server/src/middleware"
-	"github.com/aravindanve/gomeet-server/src/provider"
-	"github.com/aravindanve/gomeet-server/src/resource"
+	"github.com/aravindanve/livemeet-server/src/middleware"
+	"github.com/aravindanve/livemeet-server/src/provider"
+	"github.com/aravindanve/livemeet-server/src/resource"
 	"github.com/gorilla/mux"
 )
 

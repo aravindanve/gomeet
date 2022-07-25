@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/aravindanve/gomeet-server/src/provider"
-	"github.com/aravindanve/gomeet-server/src/resource"
+	"github.com/aravindanve/livemeet-server/src/provider"
+	"github.com/aravindanve/livemeet-server/src/resource"
 )
 
 var mockUser *resource.User

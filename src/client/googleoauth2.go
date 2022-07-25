@@ -13,7 +13,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
-	"github.com/aravindanve/gomeet-server/src/config"
+	"github.com/aravindanve/livemeet-server/src/config"
 )
 
 const (

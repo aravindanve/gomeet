@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aravindanve/gomeet-server/src/provider"
+	"github.com/aravindanve/livemeet-server/src/provider"
 	"github.com/gorilla/mux"
 )
 

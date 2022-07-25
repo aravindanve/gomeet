@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/aravindanve/gomeet-server/src/provider"
-	"github.com/aravindanve/gomeet-server/src/route"
+	"github.com/aravindanve/livemeet-server/src/provider"
+	"github.com/aravindanve/livemeet-server/src/route"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )

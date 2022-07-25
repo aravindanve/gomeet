@@ -3,10 +3,10 @@ package route
 import (
 	"net/http"
 
-	"github.com/aravindanve/gomeet-server/src/middleware"
-	"github.com/aravindanve/gomeet-server/src/provider"
-	"github.com/aravindanve/gomeet-server/src/resource"
-	"github.com/aravindanve/gomeet-server/src/util"
+	"github.com/aravindanve/livemeet-server/src/middleware"
+	"github.com/aravindanve/livemeet-server/src/provider"
+	"github.com/aravindanve/livemeet-server/src/resource"
+	"github.com/aravindanve/livemeet-server/src/util"
 	"github.com/gorilla/mux"
 )
 

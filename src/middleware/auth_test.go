@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aravindanve/gomeet-server/src/config"
+	"github.com/aravindanve/livemeet-server/src/config"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"golang.org/x/net/context"
 )

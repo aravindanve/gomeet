@@ -1,4 +1,4 @@
-module github.com/aravindanve/gomeet-server
+module github.com/aravindanve/livemeet-server
 
 go 1.18
 

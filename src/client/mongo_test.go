@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aravindanve/gomeet-server/src/config"
+	"github.com/aravindanve/livemeet-server/src/config"
 )
 
 type mockMongoClientDeps struct {

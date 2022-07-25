@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
-	"github.com/aravindanve/gomeet-server/src/client"
-	"github.com/aravindanve/gomeet-server/src/config"
-	"github.com/aravindanve/gomeet-server/src/resource"
+	"github.com/aravindanve/livemeet-server/src/client"
+	"github.com/aravindanve/livemeet-server/src/config"
+	"github.com/aravindanve/livemeet-server/src/resource"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/aravindanve/gomeet-server/src/config"
+	"github.com/aravindanve/livemeet-server/src/config"
 	"github.com/livekit/protocol/livekit"
 	lksdk "github.com/livekit/server-sdk-go"
 )

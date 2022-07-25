@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aravindanve/gomeet-server/src/middleware"
-	"github.com/aravindanve/gomeet-server/src/util"
+	"github.com/aravindanve/livemeet-server/src/middleware"
+	"github.com/aravindanve/livemeet-server/src/util"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

@@ -8,7 +8,7 @@ import (
 
 const (
 	authAccessTokenTTL    = 24 * time.Hour
-	authAccessTokenIssuer = "https://github.com/aravindanve/gomeet-server"
+	authAccessTokenIssuer = "https://github.com/aravindanve/livemeet-server"
 )
 
 type AuthConfig struct {

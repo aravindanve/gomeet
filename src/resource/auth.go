@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aravindanve/gomeet-server/src/client"
-	"github.com/aravindanve/gomeet-server/src/config"
-	"github.com/aravindanve/gomeet-server/src/util"
+	"github.com/aravindanve/livemeet-server/src/client"
+	"github.com/aravindanve/livemeet-server/src/config"
+	"github.com/aravindanve/livemeet-server/src/util"
 	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"go.mongodb.org/mongo-driver/bson"

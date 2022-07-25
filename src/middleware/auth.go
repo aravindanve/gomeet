@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aravindanve/gomeet-server/src/config"
+	"github.com/aravindanve/livemeet-server/src/config"
 	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
