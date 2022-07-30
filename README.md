@@ -2,7 +2,24 @@
 
 Web server for a simple video conferencing app written in golang with livekit.
 
-## Commands
+## Core Features
+
+- [x] Setup unit and integration tests
+- [x] Sign in with Google
+- [x] Users, auth & session
+- [x] Meetings & participants
+- [x] LiveKit integration
+- [x] Github actions workflow
+- [ ] Kubernetes manifests or helm chart
+
+## Additional Features
+
+- [ ] Admit guests into the meeting as guest
+- [ ] Persist participants in meeting
+- [ ] Cloud recording
+- [ ] Auto generate API documentation?
+
+## Develop
 
 ```bash
 make all    # runs test, e2e and build
