@@ -1,6 +1,6 @@
 # LiveMeet Server
 
-Web server for a simple video conferencing app written in golang with livekit. For educational purpose only, not for production.
+Web server for a simple video conferencing app written in golang with livekit.
 
 ## Commands
 
