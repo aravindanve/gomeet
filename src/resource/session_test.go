@@ -48,7 +48,7 @@ func newSessionWithUserAndJSON() (Session, []byte) {
 			ID:                 "some-id",
 			Name:               "Aravindan",
 			ImageURL:           nil,
-			Provider:           UserProviderGoogle,
+			Provider:           UserProvider_Google,
 			ProviderResourceID: "google-id",
 			CreatedAt:          t,
 			UpdatedAt:          t,

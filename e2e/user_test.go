@@ -24,7 +24,7 @@ func getMockUser() resource.User {
 		mockUser = &resource.User{
 			Name:               "Mock User",
 			ImageURL:           &mockUserImageURL,
-			Provider:           resource.UserProviderGoogle,
+			Provider:           resource.UserProvider_Google,
 			ProviderResourceID: "some-google-id",
 		}
 

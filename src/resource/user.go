@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	UserProviderGoogle UserProvider = "google"
+	UserProvider_Google UserProvider = "google"
 )
 
 type UserProvider string

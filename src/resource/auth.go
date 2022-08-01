@@ -29,7 +29,7 @@ const (
 )
 
 const (
-	authSchemeBearer AuthScheme = "Bearer"
+	AuthScheme_Bearer AuthScheme = "Bearer"
 )
 
 type AuthScheme string
@@ -102,7 +102,7 @@ func newAuthWithAccessToken(cf config.AuthConfig, auth *Auth) (*AuthWithAccessTo
 
 	return &AuthWithAccessToken{
 		Auth:                 *auth,
-		Scheme:               authSchemeBearer,
+		Scheme:               AuthScheme_Bearer,
 		AccessToken:          string(signed),
 		AccessTokenExpiresAt: token.Expiration(),
 	}, nil
@@ -318,7 +318,7 @@ func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// extract provider resource id
-	provider, providerResourceID := UserProviderGoogle, gtoken.Subject()
+	provider, providerResourceID := UserProvider_Google, gtoken.Subject()
 
 	// find user
 	user, err := c.UserCollection().FindOneByProviderResourceID(r.Context(), provider, providerResourceID)
@@ -331,7 +331,7 @@ func (c *AuthController) AuthCreateHandler(w http.ResponseWriter, r *http.Reques
 	if user == nil {
 		user = &User{
 			Name:               "User",
-			Provider:           UserProviderGoogle,
+			Provider:           UserProvider_Google,
 			ProviderResourceID: gtoken.Subject(),
 		}
 	}

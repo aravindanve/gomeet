@@ -27,16 +27,16 @@ const (
 type ParticipantStatus string
 
 const (
-	ParticipantStatusWaiting  ParticipantStatus = "waiting"
-	ParticipantStatusAdmitted ParticipantStatus = "admitted"
-	ParticipantStatusDenied   ParticipantStatus = "denied"
+	ParticipantStatus_Waiting  ParticipantStatus = "waiting"
+	ParticipantStatus_Admitted ParticipantStatus = "admitted"
+	ParticipantStatus_Denied   ParticipantStatus = "denied"
 )
 
 type RoomType string
 
 const (
-	RoomTypeWaiting    RoomType = "waiting"
-	RoomTypeConference RoomType = "conference"
+	RoomType_Waiting    RoomType = "waiting"
+	RoomType_Conference RoomType = "conference"
 )
 
 type ParticipantDeps interface {
@@ -79,7 +79,7 @@ func newParticipantWithRoomTokens(cf config.LiveKitConfig, participant *Particip
 	var roomTokens []RoomToken
 
 	// issue conference room token to admin or admitted
-	if roomAdmin || participant.Status == ParticipantStatusAdmitted {
+	if roomAdmin || participant.Status == ParticipantStatus_Admitted {
 		at := auth.NewAccessToken(cf.APIKey, cf.APISecret)
 		tr := true
 		grant := &auth.VideoGrant{
@@ -111,14 +111,14 @@ func newParticipantWithRoomTokens(cf config.LiveKitConfig, participant *Particip
 
 		roomTokens = append(roomTokens, RoomToken{
 			RoomName:             room,
-			RoomType:             RoomTypeConference,
+			RoomType:             RoomType_Conference,
 			AccessToken:          token,
 			AccessTokenExpiresAt: time.Now().Add(cf.RoomTokenTTL),
 		})
 	}
 
 	// issue waiting room token to admin or waiting
-	if roomAdmin || participant.Status == ParticipantStatusWaiting {
+	if roomAdmin || participant.Status == ParticipantStatus_Waiting {
 		waitingRoom := room + participantWaitingRoomSuffix
 
 		at := auth.NewAccessToken(cf.APIKey, cf.APISecret)
@@ -151,7 +151,7 @@ func newParticipantWithRoomTokens(cf config.LiveKitConfig, participant *Particip
 
 		roomTokens = append(roomTokens, RoomToken{
 			RoomName:             room,
-			RoomType:             RoomTypeWaiting,
+			RoomType:             RoomType_Waiting,
 			AccessToken:          token,
 			AccessTokenExpiresAt: time.Now().Add(cf.RoomTokenTTL),
 		})
@@ -307,10 +307,10 @@ func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, 
 
 	// get admin and status
 	var admin bool
-	var status ParticipantStatus = ParticipantStatusWaiting
+	var status ParticipantStatus = ParticipantStatus_Waiting
 	if auth != nil && meeting.UserID == ResourceID(auth.UserID) {
 		admin = true
-		status = ParticipantStatusAdmitted
+		status = ParticipantStatus_Admitted
 	}
 
 	// create participant
@@ -327,7 +327,7 @@ func (c *ParticipantController) ParticipantCreateHandler(w http.ResponseWriter, 
 	}
 
 	// save participant
-	if status == ParticipantStatusWaiting {
+	if status == ParticipantStatus_Waiting {
 		// save participant
 		err = c.ParticipantCollection().Save(r.Context(), participant)
 		if err != nil {
@@ -417,7 +417,7 @@ func (c *ParticipantController) ParticipantRetrieveHandler(w http.ResponseWriter
 	}
 
 	// delete participant if not waiting
-	if participant.Status != ParticipantStatusWaiting {
+	if participant.Status != ParticipantStatus_Waiting {
 		err = c.ParticipantCollection().DeleteOneByID(r.Context(), participant.ID)
 		if err != nil {
 			util.WriteJSONError(w, http.StatusInternalServerError, err.Error())
@@ -496,7 +496,7 @@ func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, 
 		util.WriteJSONError(w, http.StatusBadRequest, "Missing status in request body")
 		return
 	}
-	if b.Status != ParticipantStatusAdmitted && b.Status != ParticipantStatusDenied {
+	if b.Status != ParticipantStatus_Admitted && b.Status != ParticipantStatus_Denied {
 		util.WriteJSONError(w, http.StatusBadRequest, "Unexpected status in request body")
 		return
 	}
@@ -514,7 +514,7 @@ func (c *ParticipantController) ParticipantUpdateHandler(w http.ResponseWriter, 
 
 	// notify waiting room about updated participant
 	var _type string
-	if participant.Status == ParticipantStatusAdmitted {
+	if participant.Status == ParticipantStatus_Admitted {
 		_type = "participantAdmitted"
 	} else {
 		_type = "participantDenied"

@@ -3,7 +3,7 @@ package util
 import "encoding/json"
 
 const (
-	LiveKitDataTypeJSON LiveKitDataType = 1
+	LiveKitDataType_JSON LiveKitDataType = 1
 )
 
 type LiveKitDataType byte
@@ -13,5 +13,5 @@ func EncodeLiveKitDataJSON(d any) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return append([]byte{byte(LiveKitDataTypeJSON)}, b...), nil
+	return append([]byte{byte(LiveKitDataType_JSON)}, b...), nil
 }

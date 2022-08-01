@@ -32,7 +32,7 @@ func newMockMeetingAndParticipant(ctx context.Context) (resource.Meeting, resour
 		MeetingID: meeting.ID,
 		Name:      user.Name,
 		ImageURL:  user.ImageURL,
-		Status:    resource.ParticipantStatusWaiting,
+		Status:    resource.ParticipantStatus_Waiting,
 		ExpiresAt: time.Now().Add(1 * time.Hour),
 	}
 
@@ -129,8 +129,8 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 		t.Errorf("expected imageUrl in response got %#v", m.ImageURL)
 		return
 	}
-	if m.Status != resource.ParticipantStatusAdmitted {
-		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusAdmitted, m.Status)
+	if m.Status != resource.ParticipantStatus_Admitted {
+		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatus_Admitted, m.Status)
 		return
 	}
 	if len(m.RoomTokens) != 2 {
@@ -141,8 +141,8 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 		t.Errorf("expected roomName in room token 0 got %#v", m.RoomTokens[0].RoomName)
 		return
 	}
-	if m.RoomTokens[0].RoomType != resource.RoomTypeConference {
-		t.Errorf(`expected roomType in room token 0 to be %q got %q`, resource.RoomTypeConference, m.RoomTokens[0].RoomType)
+	if m.RoomTokens[0].RoomType != resource.RoomType_Conference {
+		t.Errorf(`expected roomType in room token 0 to be %q got %q`, resource.RoomType_Conference, m.RoomTokens[0].RoomType)
 		return
 	}
 	if m.RoomTokens[0].AccessToken == "" {
@@ -153,8 +153,8 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 		t.Errorf("expected roomName in room token 1 got %#v", m.RoomTokens[0].RoomName)
 		return
 	}
-	if m.RoomTokens[1].RoomType != resource.RoomTypeWaiting {
-		t.Errorf(`expected roomType in room token 1 to be %q got %q`, resource.RoomTypeWaiting, m.RoomTokens[0].RoomType)
+	if m.RoomTokens[1].RoomType != resource.RoomType_Waiting {
+		t.Errorf(`expected roomType in room token 1 to be %q got %q`, resource.RoomType_Waiting, m.RoomTokens[0].RoomType)
 		return
 	}
 	if m.RoomTokens[1].AccessToken == "" {
@@ -217,8 +217,8 @@ func TestParticipantCreateNoAuth(t *testing.T) {
 		t.Errorf("expected imageUrl to be nil got %#v", m.ImageURL)
 		return
 	}
-	if m.Status != resource.ParticipantStatusWaiting {
-		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusWaiting, m.Status)
+	if m.Status != resource.ParticipantStatus_Waiting {
+		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatus_Waiting, m.Status)
 		return
 	}
 	if len(m.RoomTokens) != 1 {
@@ -229,8 +229,8 @@ func TestParticipantCreateNoAuth(t *testing.T) {
 		t.Errorf("expected roomName in room token 0 got %#v", m.RoomTokens[0].RoomName)
 		return
 	}
-	if m.RoomTokens[0].RoomType != resource.RoomTypeWaiting {
-		t.Errorf(`expected roomType in room token 0 to be %q got %q`, resource.RoomTypeWaiting, m.RoomTokens[0].RoomType)
+	if m.RoomTokens[0].RoomType != resource.RoomType_Waiting {
+		t.Errorf(`expected roomType in room token 0 to be %q got %q`, resource.RoomType_Waiting, m.RoomTokens[0].RoomType)
 		return
 	}
 	if m.RoomTokens[0].AccessToken == "" {
@@ -409,8 +409,8 @@ func TestParticipantUpdate(t *testing.T) {
 		t.Errorf("expected imageUrl in response got %#v", m.ImageURL)
 		return
 	}
-	if m.Status != resource.ParticipantStatusDenied {
-		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatusDenied, m.Status)
+	if m.Status != resource.ParticipantStatus_Denied {
+		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatus_Denied, m.Status)
 		return
 	}
 

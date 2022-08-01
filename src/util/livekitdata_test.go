@@ -19,8 +19,8 @@ func TestEncodeLiveKitDataJSON(t *testing.T) {
 	}
 
 	i, d := m[0], m[1:]
-	if i != byte(LiveKitDataTypeJSON) {
-		t.Errorf("expected data type to be %v got %v", LiveKitDataTypeJSON, i)
+	if i != byte(LiveKitDataType_JSON) {
+		t.Errorf("expected data type to be %v got %v", LiveKitDataType_JSON, i)
 		return
 	}
 
