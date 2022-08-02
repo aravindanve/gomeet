@@ -17,6 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -243,7 +244,7 @@ func (c *ParticipantCollection) Save(
 			{Key: "_id", Value: _id},
 		}, bson.D{
 			{Key: "$set", Value: participant},
-		})
+		}, options.Update().SetUpsert(true))
 		return err
 	}
 }

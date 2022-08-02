@@ -166,6 +166,16 @@ func TestParticipantCreateWithAuth(t *testing.T) {
 	if p.livekitClient.sendDataReq != nil {
 		t.Errorf("expected livekit send data to be nil got %#v", p.livekitClient.sendDataReq)
 	}
+
+	// test resource does not exist
+	doc, err := p.ParticipantCollection().FindOneByID(ctx, m.ID)
+	if err != nil {
+		t.Errorf("unexpected error retrieving data %s", err.Error())
+	}
+	if doc != nil {
+		t.Errorf("expected doc to not be in mongodb got %#v", doc)
+		return
+	}
 }
 
 func TestParticipantCreateNoAuth(t *testing.T) {
@@ -241,6 +251,16 @@ func TestParticipantCreateNoAuth(t *testing.T) {
 	// test livekit send data
 	if p.livekitClient.sendDataReq != nil {
 		t.Errorf("expected livekit send data to be nil got %#v", p.livekitClient.sendDataReq)
+	}
+
+	// test resource exists
+	doc, err := p.ParticipantCollection().FindOneByID(ctx, m.ID)
+	if err != nil {
+		t.Errorf("unexpected error retrieving data %s", err.Error())
+	}
+	if doc == nil {
+		t.Errorf("expected doc in mongodb got %#v", doc)
+		return
 	}
 }
 
