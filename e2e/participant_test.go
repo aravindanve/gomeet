@@ -297,6 +297,20 @@ func TestParticipantRetrieve(t *testing.T) {
 		t.Errorf("expected participant with ID %v got %v", participant.ID, m.ID)
 		return
 	}
+	if m.Status != resource.ParticipantStatus_Waiting {
+		t.Errorf(`expected status to be %q got %q`, resource.ParticipantStatus_Waiting, m.Status)
+		return
+	}
+
+	// test resource exists
+	doc, err := p.ParticipantCollection().FindOneByID(ctx, participant.ID)
+	if err != nil {
+		t.Errorf("unexpected error retrieving data %s", err.Error())
+	}
+	if doc == nil {
+		t.Errorf("expected doc in mongodb got %#v", doc)
+		return
+	}
 }
 
 func TestParticipantRetrieveBadAuth(t *testing.T) {
